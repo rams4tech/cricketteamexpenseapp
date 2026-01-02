@@ -41,7 +41,12 @@
       "Bash(done)",
       "Bash(az role assignment create:*)",
       "Bash(git add:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(az webapp log download:*)",
+      "Bash(unzip:*)",
+      "Bash(az webapp config show:*)",
+      "Bash(az webapp config set:*)",
+      "Bash(az webapp restart:*)"
     ]
   }
 }

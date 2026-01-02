@@ -196,8 +196,8 @@ jobs:
       run: npm run build
       env:
         CI: true
-        # Placeholder URL - will be replaced in CD with actual backend URL
-        REACT_APP_API_URL: https://cricketteamexpense-api.azurewebsites.net/api
+        # Backend URL without /api suffix (axios calls include full path)
+        REACT_APP_API_URL: https://cricketteamexpense-api.azurewebsites.net
         REACT_APP_ENVIRONMENT: production
         GENERATE_SOURCEMAP: false
 
