@@ -68,9 +68,8 @@
     },
     "staticWebAppLocation": {
       "type": "string",
-      "defaultValue": "Central India",
+      "defaultValue": "East Asia",
       "allowedValues": [
-        "Central India",
         "East Asia",
         "West Europe",
         "Central US",
@@ -78,7 +77,7 @@
         "West US 2"
       ],
       "metadata": {
-        "description": "Location for Static Web App (Central India is closest to South India)"
+        "description": "Location for Static Web App (East Asia is closest available to South India)"
       }
     }
   },

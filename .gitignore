@@ -46,3 +46,4 @@ coverage/
 publish-profile.xml
 azure/azuredeploy.parameters.local.json
 deployment-outputs.json
+azure/deployment-output.json

@@ -1,8 +1,8 @@
-name: Backend CD - Deploy to Azure
+name: CricketTeamExpenseApp-Backend CD - Deploy to Azure
 
 on:
   workflow_run:
-    workflows: ["Continuous Integration"]
+    workflows: ["CricketTeamExpenseApp-CI"]
     types:
       - completed
     branches: [ main ]
