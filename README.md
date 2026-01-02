@@ -25,14 +25,24 @@ A full-stack web application for managing cricket team expenses, contributions, 
 - React Router for navigation
 - Bootstrap 5 for styling
 - Axios for API calls
+- Application Insights for monitoring (production)
 
 ### Backend
-- Node.js
-- Express.js
-- SQLite database
+- Node.js with Express.js
+- SQLite (local development)
+- Azure SQL Server (production)
 - JWT (JSON Web Tokens) for authentication
 - bcryptjs for password hashing
 - CORS enabled
+- Application Insights for end-to-end tracing
+
+### DevOps & Infrastructure
+- Azure Web App (backend hosting)
+- Azure Static Web App (frontend hosting)
+- Azure SQL Database (production database)
+- Application Insights (monitoring & logging)
+- GitHub Actions (CI/CD pipelines)
+- ARM Templates (infrastructure as code)
 
 ## Installation
 
@@ -277,6 +287,68 @@ When you create a match:
   - Divides total equally among paying players only (non-paying players have ₹0 expense share)
   - Records each player's share
   - Deducts the share from paying players' contribution balance
+
+## Deployment
+
+### Azure Deployment
+
+This application is configured for Azure deployment with automated CI/CD pipelines.
+
+**Quick Start:**
+1. Deploy Azure resources using ARM templates: [azure/README.md](azure/README.md)
+2. Configure GitHub secrets for CI/CD: [CI_CD_SETUP_GUIDE.md](CI_CD_SETUP_GUIDE.md)
+3. Push to main branch to trigger automatic deployment
+
+**Documentation:**
+- 📘 [Complete Azure Deployment Guide](AZURE_DEPLOYMENT_GUIDE.md)
+- 🚀 [Quick Start Guide](DEPLOYMENT_QUICK_START.md)
+- ⚙️ [CI/CD Setup Guide](CI_CD_SETUP_GUIDE.md)
+- 📊 [Logging Framework Guide](LOGGING_GUIDE.md)
+
+### Local Development vs Production
+
+| Feature | Local | Production |
+|---------|-------|------------|
+| Database | SQLite | Azure SQL Server |
+| Backend | localhost:5000 | Azure Web App |
+| Frontend | localhost:3000 | Azure Static Web App |
+| Logging | Console | Application Insights |
+| Environment | NODE_ENV=local | NODE_ENV=production |
+
+Configuration automatically switches based on environment variables.
+
+## Documentation
+
+### Setup & Deployment
+- [Installation & Local Setup](#installation) - This file
+- [Azure Deployment Guide](AZURE_DEPLOYMENT_GUIDE.md) - Complete Azure deployment instructions
+- [Quick Start Deployment](DEPLOYMENT_QUICK_START.md) - 5-step Azure deployment
+- [Deployment Summary](DEPLOYMENT_SUMMARY.md) - Configuration overview
+- [CI/CD Setup Guide](CI_CD_SETUP_GUIDE.md) - GitHub Actions & ARM templates
+- [Git Setup Instructions](GIT_SETUP_INSTRUCTIONS.md) - GitHub repository setup
+
+### Features & Usage
+- [Logging Framework](LOGGING_GUIDE.md) - Application Insights integration
+- [Logging Quick Reference](LOGGING_QUICK_REFERENCE.md) - Quick logging commands
+- [Logging Setup](LOGGING_SETUP.md) - Setup instructions
+
+### Infrastructure
+- [ARM Templates](azure/README.md) - Azure Resource Manager templates
+- [GitHub Actions Workflows](.github/workflows/README.md) - CI/CD workflow documentation
+
+## Build Status
+
+![CI](https://github.com/rams4tech/cricketteamexpenseapp/workflows/Continuous%20Integration/badge.svg)
+![Backend CD](https://github.com/rams4tech/cricketteamexpenseapp/workflows/Backend%20CD/badge.svg)
+![Frontend CD](https://github.com/rams4tech/cricketteamexpenseapp/workflows/Frontend%20CD/badge.svg)
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 

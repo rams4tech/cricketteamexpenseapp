@@ -1,0 +1,294 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "projectName": {
+      "type": "string",
+      "defaultValue": "cricket-expense",
+      "metadata": {
+        "description": "Base name for all resources"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources"
+      }
+    },
+    "sqlAdministratorLogin": {
+      "type": "string",
+      "defaultValue": "sqladmin",
+      "metadata": {
+        "description": "SQL Server administrator login"
+      }
+    },
+    "sqlAdministratorPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "SQL Server administrator password"
+      }
+    },
+    "appServicePlanSku": {
+      "type": "string",
+      "defaultValue": "B1",
+      "allowedValues": [
+        "F1",
+        "B1",
+        "B2",
+        "S1",
+        "S2",
+        "P1V2",
+        "P2V2"
+      ],
+      "metadata": {
+        "description": "App Service Plan SKU"
+      }
+    },
+    "sqlDatabaseSku": {
+      "type": "string",
+      "defaultValue": "S0",
+      "allowedValues": [
+        "Basic",
+        "S0",
+        "S1",
+        "S2",
+        "P1",
+        "P2"
+      ],
+      "metadata": {
+        "description": "SQL Database SKU"
+      }
+    },
+    "jwtSecret": {
+      "type": "securestring",
+      "metadata": {
+        "description": "JWT secret key for token signing"
+      }
+    },
+    "staticWebAppLocation": {
+      "type": "string",
+      "defaultValue": "East US 2",
+      "allowedValues": [
+        "Central US",
+        "East US 2",
+        "East Asia",
+        "West Europe",
+        "West US 2"
+      ],
+      "metadata": {
+        "description": "Location for Static Web App"
+      }
+    }
+  },
+  "variables": {
+    "sqlServerName": "[concat(parameters('projectName'), '-sqlserver-', uniqueString(resourceGroup().id))]",
+    "sqlDatabaseName": "[concat(parameters('projectName'), 'db')]",
+    "appServicePlanName": "[concat(parameters('projectName'), '-plan')]",
+    "webAppName": "[concat(parameters('projectName'), '-api-', uniqueString(resourceGroup().id))]",
+    "appInsightsName": "[concat(parameters('projectName'), '-insights')]",
+    "staticWebAppName": "[concat(parameters('projectName'), '-web')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Sql/servers",
+      "apiVersion": "2022-05-01-preview",
+      "name": "[variables('sqlServerName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "administratorLogin": "[parameters('sqlAdministratorLogin')]",
+        "administratorLoginPassword": "[parameters('sqlAdministratorPassword')]",
+        "version": "12.0",
+        "minimalTlsVersion": "1.2",
+        "publicNetworkAccess": "Enabled"
+      },
+      "resources": [
+        {
+          "type": "firewallRules",
+          "apiVersion": "2022-05-01-preview",
+          "name": "AllowAzureServices",
+          "dependsOn": [
+            "[resourceId('Microsoft.Sql/servers', variables('sqlServerName'))]"
+          ],
+          "properties": {
+            "startIpAddress": "0.0.0.0",
+            "endIpAddress": "0.0.0.0"
+          }
+        },
+        {
+          "type": "databases",
+          "apiVersion": "2022-05-01-preview",
+          "name": "[variables('sqlDatabaseName')]",
+          "location": "[parameters('location')]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Sql/servers', variables('sqlServerName'))]"
+          ],
+          "sku": {
+            "name": "[parameters('sqlDatabaseSku')]",
+            "tier": "[if(equals(parameters('sqlDatabaseSku'), 'Basic'), 'Basic', 'Standard')]"
+          },
+          "properties": {
+            "collation": "SQL_Latin1_General_CP1_CI_AS",
+            "maxSizeBytes": 2147483648,
+            "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+            "zoneRedundant": false
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[variables('appInsightsName')]",
+      "location": "[parameters('location')]",
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web",
+        "RetentionInDays": 90,
+        "publicNetworkAccessForIngestion": "Enabled",
+        "publicNetworkAccessForQuery": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2022-03-01",
+      "name": "[variables('appServicePlanName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[parameters('appServicePlanSku')]"
+      },
+      "kind": "linux",
+      "properties": {
+        "reserved": true
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2022-03-01",
+      "name": "[variables('webAppName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+        "[resourceId('Microsoft.Sql/servers/databases', variables('sqlServerName'), variables('sqlDatabaseName'))]",
+        "[resourceId('Microsoft.Insights/components', variables('appInsightsName'))]"
+      ],
+      "kind": "app,linux",
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+        "httpsOnly": true,
+        "siteConfig": {
+          "linuxFxVersion": "NODE|18-lts",
+          "alwaysOn": true,
+          "ftpsState": "Disabled",
+          "minTlsVersion": "1.2",
+          "http20Enabled": true,
+          "appSettings": [
+            {
+              "name": "NODE_ENV",
+              "value": "production"
+            },
+            {
+              "name": "DB_TYPE",
+              "value": "mssql"
+            },
+            {
+              "name": "AZURE_SQL_SERVER",
+              "value": "[concat(variables('sqlServerName'), '.database.windows.net')]"
+            },
+            {
+              "name": "AZURE_SQL_DATABASE",
+              "value": "[variables('sqlDatabaseName')]"
+            },
+            {
+              "name": "AZURE_SQL_USER",
+              "value": "[parameters('sqlAdministratorLogin')]"
+            },
+            {
+              "name": "AZURE_SQL_PASSWORD",
+              "value": "[parameters('sqlAdministratorPassword')]"
+            },
+            {
+              "name": "JWT_SECRET",
+              "value": "[parameters('jwtSecret')]"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATION_KEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').InstrumentationKey]"
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').ConnectionString]"
+            },
+            {
+              "name": "LOGGING_TYPE",
+              "value": "applicationInsights"
+            },
+            {
+              "name": "WEBSITE_NODE_DEFAULT_VERSION",
+              "value": "~18"
+            },
+            {
+              "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
+              "value": "true"
+            }
+          ],
+          "cors": {
+            "allowedOrigins": [
+              "*"
+            ],
+            "supportCredentials": false
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Web/staticSites",
+      "apiVersion": "2022-03-01",
+      "name": "[variables('staticWebAppName')]",
+      "location": "[parameters('staticWebAppLocation')]",
+      "sku": {
+        "name": "Free",
+        "tier": "Free"
+      },
+      "properties": {
+        "repositoryUrl": "",
+        "branch": "",
+        "buildProperties": {
+          "appLocation": "/client",
+          "apiLocation": "",
+          "outputLocation": "build"
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "sqlServerFqdn": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Sql/servers', variables('sqlServerName'))).fullyQualifiedDomainName]"
+    },
+    "sqlDatabaseName": {
+      "type": "string",
+      "value": "[variables('sqlDatabaseName')]"
+    },
+    "webAppUrl": {
+      "type": "string",
+      "value": "[concat('https://', reference(resourceId('Microsoft.Web/sites', variables('webAppName'))).defaultHostName)]"
+    },
+    "webAppName": {
+      "type": "string",
+      "value": "[variables('webAppName')]"
+    },
+    "staticWebAppUrl": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Web/staticSites', variables('staticWebAppName'))).defaultHostname]"
+    },
+    "appInsightsInstrumentationKey": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsName'))).InstrumentationKey]"
+    },
+    "appInsightsConnectionString": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsName'))).ConnectionString]"
+    }
+  }
+}

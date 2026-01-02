@@ -44,3 +44,5 @@ coverage/
 # Azure specific
 .azure/
 publish-profile.xml
+azure/azuredeploy.parameters.local.json
+deployment-outputs.json

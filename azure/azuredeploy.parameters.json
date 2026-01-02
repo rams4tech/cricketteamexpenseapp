@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "projectName": {
+      "value": "cricket-expense"
+    },
+    "location": {
+      "value": "East US"
+    },
+    "sqlAdministratorLogin": {
+      "value": "sqladmin"
+    },
+    "sqlAdministratorPassword": {
+      "value": "REPLACE_WITH_STRONG_PASSWORD"
+    },
+    "appServicePlanSku": {
+      "value": "B1"
+    },
+    "sqlDatabaseSku": {
+      "value": "S0"
+    },
+    "jwtSecret": {
+      "value": "REPLACE_WITH_STRONG_JWT_SECRET"
+    },
+    "staticWebAppLocation": {
+      "value": "East US 2"
+    }
+  }
+}
