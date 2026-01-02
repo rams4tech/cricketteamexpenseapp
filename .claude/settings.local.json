@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(ren:*)",
+      "Bash(node migrate.js:*)",
+      "Bash(node check-db.js:*)",
+      "Bash(node migrate-birthday.js:*)",
+      "Bash(node verify-db.js:*)",
+      "Bash(node migrate-teams.js:*)",
+      "Bash(node -e:*)",
+      "Bash(node:*)",
+      "Bash(curl:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(del test-api.js verify-server.js)",
+      "Bash(npm install:*)",
+      "Bash(del servertest-api.js serververify-server.js)",
+      "Bash(del:*)"
+    ]
+  }
+}

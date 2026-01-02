@@ -1,0 +1,11 @@
+{
+  "name": "cricket-expenses",
+  "version": "1.0.0",
+  "description": "Cricket expenses management application",
+  "scripts": {
+    "install-all": "npm install && cd client && npm install",
+    "server": "cd server && node server.js",
+    "client": "cd client && npm start",
+    "dev": "npm run server & npm run client"
+  }
+}

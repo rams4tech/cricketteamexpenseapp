@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Database
+server/*.db
+server/*.db-journal
+
+# Production build
+client/build/
+
+# Environment variables
+.env
+.env.local
+.env.production
+server/.env
+server/.env.local
+server/.env.production
+client/.env
+client/.env.local
+client/.env.production
+
+# Azure deployment
+server/deploy.zip
+*.zip
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+server/iisnode/
+
+# Testing
+coverage/
+
+# Azure specific
+.azure/
+publish-profile.xml
