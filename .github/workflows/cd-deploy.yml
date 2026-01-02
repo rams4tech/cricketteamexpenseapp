@@ -253,6 +253,16 @@ jobs:
       name: ${{ github.event.inputs.environment || 'production' }}
 
     steps:
+    - name: Debug - Check token availability
+      run: |
+        echo "Token from deploy-infrastructure: ${{ needs.deploy-infrastructure.outputs.staticWebAppToken }}"
+        if [ -z "${{ needs.deploy-infrastructure.outputs.staticWebAppToken }}" ]; then
+          echo "❌ Token is empty or not passed from deploy-infrastructure job"
+          exit 1
+        else
+          echo "✅ Token is available"
+        fi
+
     - name: Download frontend deployment artifact
       uses: dawidd6/action-download-artifact@v3
       with:
