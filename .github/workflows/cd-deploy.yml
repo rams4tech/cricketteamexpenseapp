@@ -194,7 +194,7 @@ jobs:
             },
             {
               "name": "WEBSITE_NODE_DEFAULT_VERSION",
-              "value": "~18",
+              "value": "~20",
               "slotSetting": false
             }
           ]

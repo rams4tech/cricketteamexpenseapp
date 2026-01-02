@@ -38,7 +38,8 @@
       "Bash(break)",
       "Bash(fi)",
       "Bash(echo:*)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(az role assignment create:*)"
     ]
   }
 }

@@ -21,7 +21,7 @@
     "jsonwebtoken": "^9.0.3",
     "mssql": "^10.0.4",
     "sqlite3": "^5.1.6",
-    "uuid": "^13.0.0"
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
