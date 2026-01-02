@@ -218,7 +218,7 @@ From deployment outputs or Azure Portal:
 ```bash
 # Get Static Web App deployment token
 az staticwebapp secrets list \
-  --name cricket-expense-web \
+  --name cricketteamexpense \
   --resource-group cricket-expense-rg \
   --query properties.apiKey \
   --output tsv
@@ -266,7 +266,7 @@ gh secret set AZURE_SQL_PASSWORD --body "YourStrongPassword123!"
 gh secret set JWT_SECRET --body "your-super-secure-jwt-secret-key"
 gh secret set APPINSIGHTS_INSTRUMENTATION_KEY --body "$(az deployment group show --resource-group cricket-expense-rg --name azuredeploy --query properties.outputs.appInsightsInstrumentationKey.value -o tsv)"
 gh secret set APPLICATIONINSIGHTS_CONNECTION_STRING --body "$(az deployment group show --resource-group cricket-expense-rg --name azuredeploy --query properties.outputs.appInsightsConnectionString.value -o tsv)"
-gh secret set AZURE_STATIC_WEB_APPS_API_TOKEN --body "$(az staticwebapp secrets list --name cricket-expense-web --resource-group cricket-expense-rg --query properties.apiKey -o tsv)"
+gh secret set AZURE_STATIC_WEB_APPS_API_TOKEN --body "$(az staticwebapp secrets list --name cricketteamexpense --resource-group cricket-expense-rg --query properties.apiKey -o tsv)"
 gh secret set REACT_APP_API_URL --body "https://$(az deployment group show --resource-group cricket-expense-rg --name azuredeploy --query properties.outputs.webAppName.value -o tsv).azurewebsites.net/api"
 gh secret set REACT_APP_APPINSIGHTS_KEY --body "$(az deployment group show --resource-group cricket-expense-rg --name azuredeploy --query properties.outputs.appInsightsInstrumentationKey.value -o tsv)"
 ```
@@ -491,7 +491,7 @@ az sql server firewall-rule create \
 ```bash
 # Get new token
 az staticwebapp secrets list \
-  --name cricket-expense-web \
+  --name cricketteamexpense \
   --resource-group cricket-expense-rg \
   --query properties.apiKey \
   --output tsv

@@ -20,7 +20,9 @@
       "Bash(del:*)",
       "Bash(ls:*)",
       "Bash(git commit:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(npm ci:*)",
+      "Bash(REACT_APP_API_URL=http://localhost:5000/api CI=true npm run build:*)"
     ]
   }
 }

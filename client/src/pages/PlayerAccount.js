@@ -8,11 +8,7 @@ function PlayerAccount() {
   const [accountData, setAccountData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAccountData();
-  }, [id]);
-
-  const fetchAccountData = async () => {
+  const fetchAccountData = React.useCallback(async () => {
     try {
       const response = await axios.get(`/api/players/${id}/account`);
       setAccountData(response.data);
@@ -22,7 +18,11 @@ function PlayerAccount() {
       setLoading(false);
       alert('Error loading player account data');
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchAccountData();
+  }, [fetchAccountData]);
 
   if (loading) {
     return (

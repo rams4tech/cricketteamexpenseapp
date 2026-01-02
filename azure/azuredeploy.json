@@ -4,7 +4,7 @@
   "parameters": {
     "projectName": {
       "type": "string",
-      "defaultValue": "cricket-expense",
+      "defaultValue": "cricketteamexpense",
       "metadata": {
         "description": "Base name for all resources"
       }
@@ -86,9 +86,9 @@
     "sqlServerName": "[concat(parameters('projectName'), '-sqlserver-', uniqueString(resourceGroup().id))]",
     "sqlDatabaseName": "[concat(parameters('projectName'), 'db')]",
     "appServicePlanName": "[concat(parameters('projectName'), '-plan')]",
-    "webAppName": "[concat(parameters('projectName'), '-api-', uniqueString(resourceGroup().id))]",
+    "webAppName": "[concat(parameters('projectName'), '-api')]",
     "appInsightsName": "[concat(parameters('projectName'), '-insights')]",
-    "staticWebAppName": "[concat(parameters('projectName'), '-web')]"
+    "staticWebAppName": "[parameters('projectName')]"
   },
   "resources": [
     {

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Dashboard from './pages/Dashboard';
@@ -13,7 +13,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ErrorBoundary from './components/ErrorBoundary';
 import loggingConfig from './config/logging.config';
-import { initializeLogger, getLogger } from './services/logger';
+import { initializeLogger } from './services/logger';
 import setupAxiosInterceptors from './services/axiosInterceptor';
 
 // Initialize logger

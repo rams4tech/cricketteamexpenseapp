@@ -245,7 +245,9 @@ export const getLogger = () => {
   return loggerInstance;
 };
 
-export default {
+const loggerExports = {
   initializeLogger,
   getLogger
 };
+
+export default loggerExports;

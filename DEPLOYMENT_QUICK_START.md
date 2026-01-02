@@ -28,7 +28,7 @@ az sql db create \
 
 az webapp up \
   --resource-group cricket-expense-rg \
-  --name cricket-expense-api \
+  --name cricketteamexpense-api \
   --runtime "NODE:18-lts" \
   --sku B1 \
   --location southindia
@@ -39,7 +39,7 @@ az webapp up \
 ```bash
 az webapp config appsettings set \
   --resource-group cricket-expense-rg \
-  --name cricket-expense-api \
+  --name cricketteamexpense-api \
   --settings \
     NODE_ENV=production \
     DB_TYPE=mssql \
@@ -57,7 +57,7 @@ cd server
 zip -r deploy.zip . -x "node_modules/*" "*.db"
 az webapp deployment source config-zip \
   --resource-group cricket-expense-rg \
-  --name cricket-expense-api \
+  --name cricketteamexpense-api \
   --src deploy.zip
 ```
 
@@ -65,7 +65,7 @@ az webapp deployment source config-zip \
 
 ```bash
 # Option A: Run create-admin.js via SSH
-az webapp ssh --resource-group cricket-expense-rg --name cricket-expense-api
+az webapp ssh --resource-group cricket-expense-rg --name cricketteamexpense-api
 # Then: node create-admin.js
 
 # Option B: Create manually
@@ -80,12 +80,12 @@ az webapp ssh --resource-group cricket-expense-rg --name cricket-expense-api
 # Get the URL
 az webapp show \
   --resource-group cricket-expense-rg \
-  --name cricket-expense-api \
+  --name cricketteamexpense-api \
   --query defaultHostName \
   --output tsv
 
 # Test endpoint
-curl https://cricket-expense-api.azurewebsites.net/api/summary
+curl https://cricketteamexpense-api.azurewebsites.net/api/summary
 ```
 
 ---
@@ -120,10 +120,10 @@ PORT=5000
 
 ```bash
 # Check logs
-az webapp log tail --resource-group cricket-expense-rg --name cricket-expense-api
+az webapp log tail --resource-group cricket-expense-rg --name cricketteamexpense-api
 
 # Check app status
-az webapp show --resource-group cricket-expense-rg --name cricket-expense-api --query state
+az webapp show --resource-group cricket-expense-rg --name cricketteamexpense-api --query state
 
 # Test API
 curl https://your-app.azurewebsites.net/api/summary
@@ -147,10 +147,10 @@ az sql server firewall-rule create \
 ### App Won't Start
 ```bash
 # Check Node version
-az webapp config show --resource-group cricket-expense-rg --name cricket-expense-api
+az webapp config show --resource-group cricket-expense-rg --name cricketteamexpense-api
 
 # Restart app
-az webapp restart --resource-group cricket-expense-rg --name cricket-expense-api
+az webapp restart --resource-group cricket-expense-rg --name cricketteamexpense-api
 ```
 
 ### CORS Errors
@@ -158,7 +158,7 @@ az webapp restart --resource-group cricket-expense-rg --name cricket-expense-api
 # Add CORS origin
 az webapp cors add \
   --resource-group cricket-expense-rg \
-  --name cricket-expense-api \
+  --name cricketteamexpense-api \
   --allowed-origins "https://your-frontend-domain.com"
 ```
 

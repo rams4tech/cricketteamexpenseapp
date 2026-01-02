@@ -162,7 +162,7 @@ az appservice plan create \
 az webapp create \
   --resource-group cricket-expense-rg \
   --plan cricket-expense-plan \
-  --name cricket-expense-api \
+  --name cricketteamexpense-api \
   --runtime "NODE:18-lts"
 ```
 
@@ -171,7 +171,7 @@ az webapp create \
 ```bash
 # Create Static Web App for React
 az staticwebapp create \
-  --name cricket-expense-web \
+  --name cricketteamexpense \
   --resource-group cricket-expense-rg \
   --location southindia
 ```
@@ -207,7 +207,7 @@ Set environment variables in Azure Web App:
 # Set Node environment
 az webapp config appsettings set \
   --resource-group cricket-expense-rg \
-  --name cricket-expense-api \
+  --name cricketteamexpense-api \
   --settings \
     NODE_ENV=production \
     DB_TYPE=mssql \
@@ -218,14 +218,14 @@ az webapp config appsettings set \
     JWT_SECRET="your-production-secret-key-change-this" \
     APPINSIGHTS_INSTRUMENTATION_KEY="your-instrumentation-key-here" \
     LOGGING_TYPE="applicationInsights" \
-    CORS_ORIGIN="https://cricket-expense-web.azurestaticapps.net"
+    CORS_ORIGIN="https://cricketteamexpense.azurestaticapps.net"
 ```
 
 **IMPORTANT**: Change `JWT_SECRET` to a strong, unique value!
 
 ### Or Configure via Azure Portal
 
-1. Go to Azure Portal → App Services → cricket-expense-api
+1. Go to Azure Portal → App Services → cricketteamexpense-api
 2. Settings → Configuration → Application settings
 3. Add the following settings:
 
@@ -258,7 +258,7 @@ zip -r deploy.zip . -x "*.git*" "node_modules/*" "*.db"
 # Deploy to Azure
 az webapp deployment source config-zip \
   --resource-group cricket-expense-rg \
-  --name cricket-expense-api \
+  --name cricketteamexpense-api \
   --src deploy.zip
 ```
 
@@ -282,7 +282,7 @@ swa deploy ./build \
 2. Sign in to Azure
 3. Right-click on `server` folder
 4. Select "Deploy to Web App"
-5. Choose "cricket-expense-api"
+5. Choose "cricketteamexpense-api"
 
 ### Option 3: Deploy via GitHub Actions (Recommended)
 
@@ -315,7 +315,7 @@ jobs:
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
-        app-name: 'cricket-expense-api'
+        app-name: 'cricketteamexpense-api'
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         package: ./server
 ```
@@ -331,7 +331,7 @@ The application will automatically create tables on first run. Monitor the logs:
 ```bash
 az webapp log tail \
   --resource-group cricket-expense-rg \
-  --name cricket-expense-api
+  --name cricketteamexpense-api
 ```
 
 You should see: "Azure SQL schema created successfully!"
@@ -344,7 +344,7 @@ Run the admin creation script:
 # SSH into the web app
 az webapp ssh \
   --resource-group cricket-expense-rg \
-  --name cricket-expense-api
+  --name cricketteamexpense-api
 
 # Inside the SSH session
 cd site/wwwroot
@@ -372,8 +372,8 @@ Update CORS settings if needed:
 ```bash
 az webapp cors add \
   --resource-group cricket-expense-rg \
-  --name cricket-expense-api \
-  --allowed-origins "https://cricket-expense-web.azurestaticapps.net"
+  --name cricketteamexpense-api \
+  --allowed-origins "https://cricketteamexpense.azurestaticapps.net"
 ```
 
 ### 4. Enable HTTPS Only
@@ -381,7 +381,7 @@ az webapp cors add \
 ```bash
 az webapp update \
   --resource-group cricket-expense-rg \
-  --name cricket-expense-api \
+  --name cricketteamexpense-api \
   --https-only true
 ```
 
@@ -390,7 +390,7 @@ az webapp update \
 ```bash
 # Add custom domain
 az webapp config hostname add \
-  --webapp-name cricket-expense-api \
+  --webapp-name cricketteamexpense-api \
   --resource-group cricket-expense-rg \
   --hostname api.yourdomain.com
 
@@ -398,7 +398,7 @@ az webapp config hostname add \
 az webapp config ssl bind \
   --certificate-thumbprint <thumbprint> \
   --ssl-type SNI \
-  --name cricket-expense-api \
+  --name cricketteamexpense-api \
   --resource-group cricket-expense-rg
 ```
 
@@ -422,12 +422,12 @@ az webapp config ssl bind \
 # Stream logs in real-time
 az webapp log tail \
   --resource-group cricket-expense-rg \
-  --name cricket-expense-api
+  --name cricketteamexpense-api
 
 # Download logs
 az webapp log download \
   --resource-group cricket-expense-rg \
-  --name cricket-expense-api \
+  --name cricketteamexpense-api \
   --log-file app-logs.zip
 ```
 

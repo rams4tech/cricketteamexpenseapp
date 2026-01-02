@@ -102,7 +102,7 @@ SQL_SERVER=$(az deployment group show --resource-group cricket-expense-rg --name
 echo "SQL Server: $SQL_SERVER"
 
 # Get Static Web App token
-STATIC_TOKEN=$(az staticwebapp secrets list --name cricket-expense-web --resource-group cricket-expense-rg --query properties.apiKey -o tsv)
+STATIC_TOKEN=$(az staticwebapp secrets list --name cricketteamexpense --resource-group cricket-expense-rg --query properties.apiKey -o tsv)
 echo "Static Web App Token: $STATIC_TOKEN"
 
 # Get App Insights keys
@@ -210,7 +210,7 @@ BACKEND_URL=$(az webapp show --resource-group cricket-expense-rg --name $WEBAPP_
 echo "Backend URL: https://$BACKEND_URL"
 
 # Get static web app URL
-FRONTEND_URL=$(az staticwebapp show --name cricket-expense-web --resource-group cricket-expense-rg --query defaultHostname -o tsv)
+FRONTEND_URL=$(az staticwebapp show --name cricketteamexpense --resource-group cricket-expense-rg --query defaultHostname -o tsv)
 echo "Frontend URL: https://$FRONTEND_URL"
 ```
 
@@ -417,7 +417,7 @@ az webapp config hostname add \
 
 # Add custom domain to static web app
 az staticwebapp hostname set \
-  --name cricket-expense-web \
+  --name cricketteamexpense \
   --resource-group cricket-expense-rg \
   --hostname www.yourdomain.com
 ```
