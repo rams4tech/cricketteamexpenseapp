@@ -12,7 +12,7 @@ function Signup() {
     confirmPassword: '',
     firstname: '',
     lastname: '',
-    dob: '',
+    birthday: '',
     contact: '',
     securityQuestion: '',
     securityAnswer: ''
@@ -61,7 +61,7 @@ function Signup() {
         password: formData.password,
         firstname: formData.firstname,
         lastname: formData.lastname,
-        dob: formData.dob,
+        birthday: formData.birthday || null,
         contact: formData.contact,
         securityQuestion: formData.securityQuestion,
         securityAnswer: formData.securityAnswer
@@ -195,17 +195,23 @@ function Signup() {
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="dob" className="form-label">
-                    Date of Birth
+                  <label htmlFor="birthday" className="form-label">
+                    Birthday (Optional)
                   </label>
                   <input
-                    type="date"
+                    type="text"
                     className="form-control"
-                    id="dob"
-                    name="dob"
-                    value={formData.dob}
+                    id="birthday"
+                    name="birthday"
+                    value={formData.birthday}
                     onChange={handleInputChange}
+                    placeholder="MM-DD (e.g., 03-15)"
+                    pattern="(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+                    title="Please enter date in MM-DD format (e.g., 03-15)"
                   />
+                  <small className="form-text text-muted">
+                    Enter month and day (MM-DD format, year not required)
+                  </small>
                 </div>
 
                 <div className="mb-3">

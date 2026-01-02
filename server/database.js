@@ -39,11 +39,11 @@ if (config.useSQLite()) {
           mobilenumber TEXT,
           email TEXT,
           birthday TEXT,
-          dob TEXT,
           contact TEXT,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
       `);
+      // Note: birthday stores MM-DD format (e.g., "03-15" for March 15)
 
       // Contributions table
       db.run(`

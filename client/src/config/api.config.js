@@ -32,7 +32,9 @@ export const getApiUrl = (path) => {
   return normalizedPath;
 };
 
-export default {
+const apiConfig = {
   API_BASE_URL,
   getApiUrl
 };
+
+export default apiConfig;

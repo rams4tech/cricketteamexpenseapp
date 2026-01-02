@@ -86,8 +86,8 @@ function Profile() {
                     <strong>Player Name:</strong> {player.firstname} {player.lastname}
                   </div>
                   <div className="mb-3">
-                    <strong>Date of Birth:</strong>{' '}
-                    {player.dob ? new Date(player.dob).toLocaleDateString() : 'N/A'}
+                    <strong>Birthday:</strong>{' '}
+                    {player.birthday || 'N/A'}
                   </div>
                   <div className="mb-3">
                     <strong>Contact:</strong> {player.contact || 'N/A'}

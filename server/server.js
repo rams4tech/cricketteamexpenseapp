@@ -995,7 +995,7 @@ const requireAdmin = (req, res, next) => {
 
 // Signup endpoint
 app.post('/api/auth/signup', async (req, res) => {
-  const { username, password, firstname, lastname, dob, contact, securityQuestion, securityAnswer } = req.body;
+  const { username, password, firstname, lastname, birthday, contact, securityQuestion, securityAnswer } = req.body;
 
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
@@ -1009,6 +1009,11 @@ app.post('/api/auth/signup', async (req, res) => {
     return res.status(400).json({ error: 'Security question and answer are required' });
   }
 
+  // Validate birthday format if provided (MM-DD)
+  if (birthday && !/^\d{2}-\d{2}$/.test(birthday)) {
+    return res.status(400).json({ error: 'Birthday must be in MM-DD format (e.g., 03-15)' });
+  }
+
   try {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -1018,8 +1023,8 @@ app.post('/api/auth/signup', async (req, res) => {
 
     // First, create the player record
     db.run(
-      'INSERT INTO players (firstname, lastname, dob, contact) VALUES (?, ?, ?, ?)',
-      [firstname, lastname, dob || null, contact || null],
+      'INSERT INTO players (firstname, lastname, birthday, contact) VALUES (?, ?, ?, ?)',
+      [firstname, lastname, birthday || null, contact || null],
       function(playerErr) {
         if (playerErr) {
           logger.error('Error creating player profile', playerErr, {

@@ -172,11 +172,11 @@ function Players() {
                   name="birthday"
                   value={formData.birthday}
                   onChange={handleInputChange}
-                  placeholder="MM-DD (e.g., 01-15)"
+                  placeholder="MM-DD (e.g., 03-15)"
                   pattern="(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
-                  title="Please enter date in MM-DD format (e.g., 01-15)"
+                  title="Please enter date in MM-DD format (e.g., 03-15)"
                 />
-                <small className="form-text text-muted">Enter month and day (MM-DD)</small>
+                <small className="form-text text-muted">Enter month and day (MM-DD format)</small>
               </div>
             </div>
             <div className="btn-group">

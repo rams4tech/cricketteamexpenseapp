@@ -33,8 +33,7 @@ const createSchema = async (db) => {
         lastname NVARCHAR(255) NOT NULL,
         mobilenumber NVARCHAR(50),
         email NVARCHAR(255),
-        birthday DATE,
-        dob DATE,
+        birthday NVARCHAR(5),
         contact NVARCHAR(50),
         created_at DATETIME DEFAULT GETDATE()
       )

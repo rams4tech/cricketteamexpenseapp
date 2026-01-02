@@ -39,7 +39,9 @@
       "Bash(fi)",
       "Bash(echo:*)",
       "Bash(done)",
-      "Bash(az role assignment create:*)"
+      "Bash(az role assignment create:*)",
+      "Bash(git add:*)",
+      "Bash(git push:*)"
     ]
   }
 }
