@@ -67,7 +67,7 @@ jobs:
       id: get-swa-token
       run: |
         TOKEN=$(az staticwebapp secrets list \
-          --name ${{ steps.arm-deploy.outputs.webAppName }} \
+          --name cricketteamexpense \
           --resource-group cricket-expense-rg \
           --query properties.apiKey \
           --output tsv)
