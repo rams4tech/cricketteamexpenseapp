@@ -3,6 +3,10 @@ node_modules/
 client/node_modules/
 server/node_modules/
 
+# Temp
+deployments/
+LogFiles/
+
 # Database
 server/*.db
 server/*.db-journal
