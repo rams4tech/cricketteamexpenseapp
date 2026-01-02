@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { getLogger } from './logger';
+import { API_BASE_URL } from '../config/api.config';
 
 /**
  * Axios Interceptor for Request/Response Logging and Correlation Tracking
@@ -10,6 +11,7 @@ import { getLogger } from './logger';
  * 2. Logs all API requests and responses
  * 3. Tracks API call duration
  * 4. Enables end-to-end tracing across client and server
+ * 5. Configures the API base URL for production deployments
  */
 
 let isInterceptorSetup = false;
@@ -17,6 +19,12 @@ let isInterceptorSetup = false;
 export const setupAxiosInterceptors = () => {
   if (isInterceptorSetup) {
     return;
+  }
+
+  // Configure axios defaults
+  if (API_BASE_URL) {
+    axios.defaults.baseURL = API_BASE_URL;
+    console.log(`Axios configured with base URL: ${API_BASE_URL}`);
   }
 
   const logger = getLogger();
