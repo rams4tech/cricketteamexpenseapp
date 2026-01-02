@@ -156,15 +156,50 @@ if (config.useSQLite()) {
 
   db = new AzureSQLAdapter();
 
-  // Initialize Azure SQL connection and schema
+  // Initialize Azure SQL connection and schema with retry logic
   (async () => {
-    try {
-      await db.connect();
-      console.log(`Connected to Azure SQL database (${config.environment} environment)`);
-      await createSchema(db);
-    } catch (err) {
-      console.error('Failed to initialize Azure SQL:', err);
-      process.exit(1);
+    const maxRetries = 5;
+    const retryDelay = 5000; // 5 seconds
+    let retryCount = 0;
+
+    while (retryCount < maxRetries) {
+      try {
+        console.log(`Attempting to connect to Azure SQL (attempt ${retryCount + 1}/${maxRetries})...`);
+        console.log('Connection config:', {
+          server: config.database.azureSQL.server,
+          database: config.database.azureSQL.database,
+          user: config.database.azureSQL.user,
+          hasPassword: !!config.database.azureSQL.password
+        });
+
+        await db.connect();
+        console.log(`Connected to Azure SQL database (${config.environment} environment)`);
+
+        console.log('Creating database schema...');
+        await createSchema(db);
+        console.log('Database schema created successfully');
+
+        // Connection successful, break the retry loop
+        break;
+      } catch (err) {
+        retryCount++;
+        console.error(`Failed to initialize Azure SQL (attempt ${retryCount}/${maxRetries}):`, err.message);
+
+        if (err.code) {
+          console.error('Error code:', err.code);
+        }
+        if (err.originalError) {
+          console.error('Original error:', err.originalError.message);
+        }
+
+        if (retryCount < maxRetries) {
+          console.log(`Retrying in ${retryDelay/1000} seconds...`);
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+        } else {
+          console.error('All connection attempts failed. Exiting...');
+          process.exit(1);
+        }
+      }
     }
   })();
 }
