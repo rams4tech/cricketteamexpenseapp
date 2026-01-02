@@ -1,11 +1,11 @@
 name: Backend CD - Deploy to Azure
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Continuous Integration"]
+    types:
+      - completed
     branches: [ main ]
-    paths:
-      - 'server/**'
-      - '.github/workflows/cd-backend.yml'
   workflow_dispatch:
     inputs:
       environment:
@@ -21,56 +21,28 @@ jobs:
   deploy-backend:
     name: Deploy Backend to Azure Web App
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     environment:
       name: ${{ github.event.inputs.environment || 'production' }}
       url: ${{ steps.deploy.outputs.webapp-url }}
 
-    defaults:
-      run:
-        working-directory: ./server
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
+    - name: Download backend deployment artifact
+      uses: dawidd6/action-download-artifact@v3
       with:
-        node-version: '18.x'
-        cache: 'npm'
-        cache-dependency-path: server/package-lock.json
+        workflow: ci.yml
+        name: backend-deployment-package
+        path: ./backend-deploy
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        run_id: ${{ github.event.workflow_run.id }}
+        if_no_artifact_found: fail
 
-    - name: Install dependencies
-      run: npm ci --production
-
-    - name: Create .env file
+    - name: Create deployment zip
       run: |
-        echo "NODE_ENV=production" > .env
-        echo "DB_TYPE=mssql" >> .env
-        echo "LOGGING_TYPE=applicationInsights" >> .env
-      env:
-        NODE_ENV: production
-
-    - name: Run database migrations (if any)
-      run: |
-        if [ -f "migrations/run-migrations.js" ]; then
-          echo "Running migrations..."
-          node migrations/run-migrations.js
-        else
-          echo "No migrations to run"
-        fi
-      continue-on-error: true
-
-    - name: Create deployment package
-      run: |
+        cd backend-deploy
+        zip -r ../deploy.zip . -x "*.db" -x "*.db-journal"
         cd ..
-        zip -r deploy.zip server/ \
-          -x "server/node_modules/*" \
-          -x "server/*.db" \
-          -x "server/*.db-journal" \
-          -x "server/.env.local" \
-          -x "server/package-lock.json"
-        mv deploy.zip server/
+        ls -lh deploy.zip
 
     - name: Login to Azure
       uses: azure/login@v1
@@ -82,7 +54,7 @@ jobs:
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-        package: ./server/deploy.zip
+        package: ./deploy.zip
 
     - name: Configure App Settings
       uses: azure/appservice-settings@v1

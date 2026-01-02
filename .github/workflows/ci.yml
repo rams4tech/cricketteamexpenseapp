@@ -65,6 +65,46 @@ jobs:
         fi
       continue-on-error: true
 
+  # Backend Build Job (runs only on main branch for deployment)
+  backend-build:
+    name: Build Backend for Deployment
+    runs-on: ubuntu-latest
+    needs: backend-ci
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    defaults:
+      run:
+        working-directory: ./server
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js 18.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+        cache-dependency-path: server/package-lock.json
+
+    - name: Install production dependencies
+      run: npm ci --production
+
+    - name: Create deployment package
+      run: |
+        cd ..
+        mkdir -p backend-deploy
+        cp -r server/* backend-deploy/
+        cd backend-deploy
+        ls -la
+
+    - name: Upload backend deployment artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-deployment-package
+        path: backend-deploy/
+        retention-days: 30
+
   # Frontend CI Job
   frontend-ci:
     name: Frontend CI
@@ -126,6 +166,50 @@ jobs:
         name: frontend-build-${{ matrix.node-version }}
         path: client/build/
         retention-days: 7
+
+  # Frontend Build Job (runs only on main branch for deployment)
+  frontend-build:
+    name: Build Frontend for Deployment
+    runs-on: ubuntu-latest
+    needs: frontend-ci
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    defaults:
+      run:
+        working-directory: ./client
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js 18.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+        cache-dependency-path: client/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build production application
+      run: npm run build
+      env:
+        CI: true
+        # Placeholder URL - will be replaced in CD with actual backend URL
+        REACT_APP_API_URL: https://cricketteamexpense-api.azurewebsites.net/api
+        REACT_APP_ENVIRONMENT: production
+        GENERATE_SOURCEMAP: false
+
+    - name: Remove source maps
+      run: find build -name "*.map" -type f -delete
+
+    - name: Upload frontend deployment artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-deployment-package
+        path: client/build/
+        retention-days: 30
 
   # Code Quality Check
   code-quality:
