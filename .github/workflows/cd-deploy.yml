@@ -253,15 +253,34 @@ jobs:
       name: ${{ github.event.inputs.environment || 'production' }}
 
     steps:
-    - name: Debug - Check token availability
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Azure Login (OIDC)
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Get Static Web App Deployment Token
+      id: get-swa-token
       run: |
-        echo "Token from deploy-infrastructure: ${{ needs.deploy-infrastructure.outputs.staticWebAppToken }}"
-        if [ -z "${{ needs.deploy-infrastructure.outputs.staticWebAppToken }}" ]; then
-          echo "❌ Token is empty or not passed from deploy-infrastructure job"
+        echo "Retrieving Static Web App deployment token..."
+        TOKEN=$(az staticwebapp secrets list \
+          --name cricketteamexpense \
+          --resource-group cricket-expense-rg \
+          --query properties.apiKey \
+          --output tsv)
+
+        if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+          echo "❌ Failed to retrieve Static Web App token"
           exit 1
-        else
-          echo "✅ Token is available"
         fi
+
+        echo "✅ Token retrieved successfully"
+        echo "::add-mask::$TOKEN"
+        echo "token=$TOKEN" >> $GITHUB_OUTPUT
 
     - name: Download frontend deployment artifact
       uses: dawidd6/action-download-artifact@v3
@@ -283,7 +302,7 @@ jobs:
       id: deploy-static
       uses: Azure/static-web-apps-deploy@v1
       with:
-        azure_static_web_apps_api_token: ${{ needs.deploy-infrastructure.outputs.staticWebAppToken }}
+        azure_static_web_apps_api_token: ${{ steps.get-swa-token.outputs.token }}
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         action: "upload"
         app_location: "frontend-build"
