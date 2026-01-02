@@ -1,176 +1,203 @@
-# Cricket Expenses Manager
+# Cricket Expense Management Application
 
-A full-stack web application for managing cricket team expenses, contributions, and member information.
+A full-stack web application for managing cricket team expenses, contributions, and member information with Azure cloud deployment and automated CI/CD pipelines.
 
 ## Features
 
-- **Authentication & Authorization**: User login/signup system with role-based access control (Admin and Player roles)
-- **Dashboard**: View summary statistics including total contributions, expenses, balance, and number of players
-- **Players Management**: Add, edit, and delete player information (firstname, lastname, mobile number, optional email, optional birthday)
-- **Player Account**: View individual player's contribution history, match expenses, and current balance
-- **Teams Management**: Create and manage teams with team name, date formed, and team manager (selected from existing players). Add/remove players to teams.
-- **Match Management**: Record matches with detailed expense tracking (ground fee, ball amount, other expenses). Mark players as paying or non-paying. Expenses are automatically divided equally only among paying players.
-- **Contributions Tracking**: Record financial contributions from players
-- **Expenses Management**: Track team expenses by category
+### Core Functionality
+- **Authentication & Authorization**: JWT-based authentication with role-based access control (Admin and Player roles)
+- **Security Questions**: Password reset with security question verification
+- **Dashboard**: Real-time statistics including total contributions, expenses, balance, and player count
+- **Player Management**: Complete CRUD operations for player profiles (name, contact, email, birthday)
+- **Player Accounts**: Individual player balance tracking with contribution and expense history
+- **Team Management**: Create and manage teams with designated managers
+- **Match Management**: Record matches with automatic expense calculation and player assignment
+- **Contribution Tracking**: Financial contribution recording and tracking
+- **Expense Management**: Team expense tracking by category
+
+### Technical Features
+- **Environment-Aware Database**: Automatically switches between SQLite (local) and Azure SQL (production)
+- **End-to-End Logging**: Application Insights integration with correlation ID tracking
+- **Tool-Agnostic Logging**: Abstract logging interface for easy monitoring tool switching
+- **Automated CI/CD**: GitHub Actions pipelines for testing and deployment
+- **Infrastructure as Code**: ARM templates for Azure resource provisioning
+- **Security Scanning**: Automated vulnerability and secret detection
 
 ### Role-Based Access Control
 
-- **Admin Role**: Full access to create, edit, and delete all data (players, teams, matches, contributions, expenses)
-- **Player Role**: Read-only access - can view all data but cannot make any changes
+- **Admin Role**: Full access to create, edit, and delete all data
+- **Player Role**: Read-only access to view all data
 
 ## Tech Stack
 
 ### Frontend
-- React 18
-- React Router for navigation
-- Bootstrap 5 for styling
-- Axios for API calls
-- Application Insights for monitoring (production)
+- React 18 with React Router
+- Bootstrap 5 for responsive UI
+- Axios for API communication
+- Application Insights (production monitoring)
+- Error boundaries for graceful error handling
 
 ### Backend
 - Node.js with Express.js
 - SQLite (local development)
 - Azure SQL Server (production)
-- JWT (JSON Web Tokens) for authentication
-- bcryptjs for password hashing
+- JWT authentication with bcryptjs
 - CORS enabled
-- Application Insights for end-to-end tracing
+- Application Insights with request tracing
 
 ### DevOps & Infrastructure
-- Azure Web App (backend hosting)
-- Azure Static Web App (frontend hosting)
-- Azure SQL Database (production database)
-- Application Insights (monitoring & logging)
-- GitHub Actions (CI/CD pipelines)
-- ARM Templates (infrastructure as code)
+- **Hosting**: Azure Web App (backend), Azure Static Web App (frontend)
+- **Database**: Azure SQL Database with automated backups
+- **Monitoring**: Application Insights with end-to-end tracing
+- **CI/CD**: GitHub Actions with automated testing and deployment
+- **IaC**: ARM templates for infrastructure provisioning
+- **Security**: Trivy vulnerability scanning, TruffleHog secret detection
 
-## Installation
+## Quick Start
 
-### Prerequisites
-- Node.js (v14 or higher)
-- npm
+### Local Development
 
-### Setup Instructions
+1. **Prerequisites**
+   - Node.js 18.x or higher
+   - npm 9.x or higher
+   - Git
 
-1. **Install all dependencies**
+2. **Clone and Install**
    ```bash
+   git clone https://github.com/rams4tech/cricketteamexpenseapp.git
+   cd cricketteamexpenseapp
    npm run install-all
    ```
 
-2. **Start the backend server**
+3. **Start Backend** (Terminal 1)
    ```bash
    cd server
    npm start
    ```
-   The server will run on http://localhost:5000
+   Server runs at http://localhost:5000
 
-3. **Start the React frontend** (in a new terminal)
+4. **Start Frontend** (Terminal 2)
    ```bash
    cd client
    npm start
    ```
-   The app will open in your browser at http://localhost:3000
+   App opens at http://localhost:3000
 
-## Project Structure
-
-```
-cricket-expenses/
-├── client/                 # React frontend
-│   ├── public/
-│   ├── src/
-│   │   ├── pages/         # Page components
-│   │   │   ├── Dashboard.js
-│   │   │   ├── Players.js
-│   │   │   ├── PlayerAccount.js
-│   │   │   ├── Teams.js
-│   │   │   ├── Matches.js
-│   │   │   ├── Contributions.js
-│   │   │   └── Expenses.js
-│   │   ├── App.js
-│   │   ├── index.js
-│   │   └── index.css
-│   └── package.json
-├── server/                # Express backend
-│   ├── server.js         # API routes
-│   ├── database.js       # SQLite setup
-│   ├── cricket_expenses.db  # Database file (created on first run)
-│   └── package.json
-└── README.md
-```
-
-## Authentication
-
-### First Time Setup
-
-1. **Create an Admin User**: Since all signups default to the 'player' role, you need to manually create an admin user:
-
+5. **Create Admin User**
    ```bash
    cd server
    node create-admin.js
    ```
+   Default credentials: `admin` / `admin123`
 
-   This creates an admin user with:
-   - **Username**: admin
-   - **Password**: admin123
-   - **Role**: admin
+### Azure Deployment
 
-   Note: If the admin user already exists, the script will notify you.
+Follow the interactive checklist: **[QUICK_START_CHECKLIST.md](QUICK_START_CHECKLIST.md)**
 
-2. **Login**: Navigate to [http://localhost:3000/login](http://localhost:3000/login) and login with the admin credentials
+Or see detailed guides:
+- **[CI/CD Setup Guide](CI_CD_SETUP_GUIDE.md)** - Complete deployment setup
+- **[Azure Deployment Guide](AZURE_DEPLOYMENT_GUIDE.md)** - Manual Azure deployment
+- **[Quick Start](DEPLOYMENT_QUICK_START.md)** - 5-step quick deployment
 
-3. **Create Regular Users**: Regular users can sign up at [http://localhost:3000/signup](http://localhost:3000/signup) and will automatically be assigned the 'player' role
+## Project Structure
 
-### Authentication Flow
-
-- All routes except `/login` and `/signup` require authentication
-- JWT tokens are stored in localStorage and sent with each API request
-- Tokens expire after 24 hours
-- Users are redirected to login page if not authenticated
+```
+cricketexpenseapp/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml                     # Continuous Integration
+│       ├── cd-backend.yml             # Backend deployment
+│       ├── cd-frontend.yml            # Frontend deployment
+│       └── README.md                  # Workflow documentation
+├── azure/
+│   ├── azuredeploy.json               # ARM template
+│   ├── azuredeploy.parameters.json    # ARM parameters
+│   └── README.md                      # ARM template docs
+├── client/                            # React frontend
+│   ├── src/
+│   │   ├── components/
+│   │   │   └── ErrorBoundary.js       # Error handling
+│   │   ├── config/
+│   │   │   └── logging.config.js      # Logging config
+│   │   ├── hooks/
+│   │   │   └── usePageTracking.js     # Page view tracking
+│   │   ├── pages/                     # React pages
+│   │   ├── services/
+│   │   │   ├── axiosInterceptor.js    # API logging
+│   │   │   └── logger.js              # Client logger
+│   │   ├── App.js
+│   │   └── index.js
+│   └── package.json
+├── server/                            # Express backend
+│   ├── config/
+│   │   ├── environment.js             # Environment config
+│   │   └── logging.config.js          # Logging config
+│   ├── database/
+│   │   ├── azureSQLAdapter.js         # Azure SQL adapter
+│   │   └── azureSQLSchema.js          # Database schema
+│   ├── logger/
+│   │   ├── ILogger.js                 # Abstract logger
+│   │   ├── ApplicationInsightsLogger.js
+│   │   ├── ConsoleLogger.js
+│   │   └── LoggerFactory.js
+│   ├── middleware/
+│   │   └── loggingMiddleware.js       # Request logging
+│   ├── create-admin.js                # Admin user creation
+│   ├── database.js                    # DB initialization
+│   ├── server.js                      # API routes
+│   ├── web.config                     # Azure IIS config
+│   └── package.json
+├── AZURE_DEPLOYMENT_GUIDE.md          # Complete Azure guide
+├── CI_CD_SETUP_GUIDE.md               # CI/CD setup guide
+├── DEPLOYMENT_QUICK_START.md          # Quick deployment
+├── LOGGING_GUIDE.md                   # Logging framework docs
+├── QUICK_START_CHECKLIST.md           # Deployment checklist
+└── README.md                          # This file
+```
 
 ## API Endpoints
 
 ### Authentication
-- `POST /api/auth/signup` - Create new user account (default role: player)
+- `POST /api/auth/signup` - Create user account with security question
 - `POST /api/auth/login` - Login and receive JWT token
-- `GET /api/auth/me` - Get current user info (requires authentication)
-- `POST /api/auth/logout` - Logout (requires authentication)
+- `POST /api/auth/reset-password` - Reset password with security question
+- `GET /api/auth/me` - Get current user info
+- `POST /api/auth/logout` - Logout
 
 ### Players
 - `GET /api/players` - Get all players
-- `GET /api/players/:id` - Get single player
-- `GET /api/players/:id/teams` - Get teams for a specific player
-- `GET /api/players/:id/account` - Get player account details (contributions, expenses, balance)
-- `POST /api/players` - Create player
-- `PUT /api/players/:id` - Update player
-- `DELETE /api/players/:id` - Delete player
+- `GET /api/players/:id` - Get player by ID
+- `GET /api/players/:id/teams` - Get player's teams
+- `GET /api/players/:id/account` - Get player account (contributions, expenses, balance)
+- `POST /api/players` - Create player (Admin)
+- `PUT /api/players/:id` - Update player (Admin)
+- `DELETE /api/players/:id` - Delete player (Admin)
 
 ### Teams
-- `GET /api/teams` - Get all teams with player count
-- `GET /api/teams/:id` - Get single team with players
-- `POST /api/teams` - Create team
-- `PUT /api/teams/:id` - Update team
-- `DELETE /api/teams/:id` - Delete team
-- `POST /api/teams/:teamId/players/:playerId` - Add player to team
-- `DELETE /api/teams/:teamId/players/:playerId` - Remove player from team
+- `GET /api/teams` - Get all teams
+- `GET /api/teams/:id` - Get team with players
+- `POST /api/teams` - Create team (Admin)
+- `PUT /api/teams/:id` - Update team (Admin)
+- `DELETE /api/teams/:id` - Delete team (Admin)
+- `POST /api/teams/:teamId/players/:playerId` - Add player to team (Admin)
+- `DELETE /api/teams/:teamId/players/:playerId` - Remove player from team (Admin)
 
 ### Matches
-- `GET /api/matches` - Get all matches with player counts
-- `GET /api/matches/:id` - Get single match with players and expenses
-- `POST /api/matches` - Create match with expenses and player assignments
-- `PUT /api/matches/:id` - Update match details and expenses
-- `DELETE /api/matches/:id` - Delete match
-- `POST /api/matches/:matchId/players/:playerId` - Add player to match (recalculates expenses)
-- `DELETE /api/matches/:matchId/players/:playerId` - Remove player from match (recalculates expenses)
+- `GET /api/matches` - Get all matches
+- `GET /api/matches/:id` - Get match details with players
+- `POST /api/matches` - Create match with automatic expense calculation (Admin)
+- `PUT /api/matches/:id` - Update match (Admin)
+- `DELETE /api/matches/:id` - Delete match (Admin)
+- `POST /api/matches/:matchId/players/:playerId` - Add player to match (Admin)
+- `DELETE /api/matches/:matchId/players/:playerId` - Remove player from match (Admin)
 
-### Contributions
+### Contributions & Expenses
 - `GET /api/contributions` - Get all contributions
-- `POST /api/contributions` - Create contribution
-- `DELETE /api/contributions/:id` - Delete contribution
-
-### Expenses
+- `POST /api/contributions` - Create contribution (Admin)
+- `DELETE /api/contributions/:id` - Delete contribution (Admin)
 - `GET /api/expenses` - Get all expenses
-- `POST /api/expenses` - Create expense
-- `DELETE /api/expenses/:id` - Delete expense
+- `POST /api/expenses` - Create expense (Admin)
+- `DELETE /api/expenses/:id` - Delete expense (Admin)
 
 ### Summary
 - `GET /api/summary` - Get dashboard statistics
@@ -178,163 +205,134 @@ cricket-expenses/
 ## Database Schema
 
 ### Users Table
-- id (Primary Key)
-- username (Unique, Required)
-- password (Hashed, Required)
-- role (Required - 'admin' or 'player', default: 'player')
-- player_id (Optional - Foreign Key → players.id)
-- created_at
+- `id` (PK), `username` (Unique), `password` (Hashed)
+- `role` ('admin' or 'player')
+- `player_id` (FK → players.id)
+- `security_question`, `security_answer` (Hashed)
+- `created_at`
 
 ### Players Table
-- id (Primary Key)
-- firstname (Required)
-- lastname (Required)
-- mobilenumber (Required)
-- email (Optional)
-- birthday (Optional - Format: MM-DD, e.g., 01-15 for January 15th)
-- created_at
+- `id` (PK), `firstname`, `lastname`, `mobilenumber`
+- `email` (Optional), `birthday` (Optional, MM-DD format)
+- `created_at`
 
 ### Teams Table
-- id (Primary Key)
-- name (Required)
-- date_formed (Required)
-- manager_id (Required - Foreign Key → players.id)
-- created_at
+- `id` (PK), `name`, `date_formed`
+- `manager_id` (FK → players.id)
+- `created_at`
 
-### Team_Players Table (Junction Table)
-- id (Primary Key)
-- team_id (Foreign Key → teams.id)
-- player_id (Foreign Key → players.id)
-- joined_date (Date player joined the team)
-- created_at
-
-### Contributions Table
-- id (Primary Key)
-- player_id (Foreign Key)
-- amount
-- date
-- description
-- created_at
-
-### Expenses Table
-- id (Primary Key)
-- description
-- amount
-- date
-- category
-- created_at
+### Team_Players (Junction)
+- `id` (PK), `team_id` (FK), `player_id` (FK)
+- `joined_date`, `created_at`
 
 ### Matches Table
-- id (Primary Key)
-- team_id (Foreign Key → teams.id)
-- match_date (Required)
-- opponent_team (Optional)
-- venue (Optional)
-- ground_fee (Match expense)
-- ball_amount (Match expense)
-- other_expenses (Match expense)
-- total_expense (Calculated)
-- expense_per_player (Calculated - total ÷ paying player count)
-- players_count (Number of players in match)
-- created_at
+- `id` (PK), `team_id` (FK), `match_date`
+- `opponent_team`, `venue`
+- `ground_fee`, `ball_amount`, `other_expenses`
+- `total_expense`, `expense_per_player`, `players_count`
+- `created_at`
 
-### Match_Players Table (Junction Table)
-- id (Primary Key)
-- match_id (Foreign Key → matches.id)
-- player_id (Foreign Key → players.id)
-- expense_share (Amount this player owes for the match)
-- is_paying (1 = paying player, 0 = non-paying player)
-- created_at
-- UNIQUE(match_id, player_id)
+### Match_Players (Junction)
+- `id` (PK), `match_id` (FK), `player_id` (FK)
+- `expense_share`, `is_paying` (1 = paying, 0 = non-paying)
+- `created_at`
 
-### Match_Expenses Table (Itemized Expenses)
-- id (Primary Key)
-- match_id (Foreign Key → matches.id)
-- description (Expense description)
-- amount (Expense amount)
-- category (Optional category)
-- created_at
+### Contributions & Expenses
+- Standard fields: `id` (PK), `player_id` (FK), `amount`, `date`, `description`, `category`, `created_at`
 
-## Usage
+## Environment Configuration
 
-### Getting Started
+### Local Development
+```env
+NODE_ENV=local
+DB_TYPE=sqlite
+SQLITE_FILE=./cricket_expenses.db
+JWT_SECRET=your-dev-secret
+PORT=5000
+LOGGING_TYPE=console
+```
 
-1. **First Time Setup**: Create an admin user using the command provided in the Authentication section
-2. **Login**: Access the application at [http://localhost:3000](http://localhost:3000) and login with your credentials
-3. **User Roles**:
-   - **Admin users** can add, edit, and delete all data
-   - **Player users** can view all data but cannot make changes
+### Production (Azure)
+```env
+NODE_ENV=production
+DB_TYPE=mssql
+AZURE_SQL_SERVER=yourserver.database.windows.net
+AZURE_SQL_DATABASE=cricketexpensedb
+AZURE_SQL_USER=sqladmin
+AZURE_SQL_PASSWORD=YourStrongPassword
+JWT_SECRET=production-secret-key
+APPINSIGHTS_INSTRUMENTATION_KEY=your-key
+LOGGING_TYPE=applicationInsights
+```
 
-### Workflow
+## CI/CD Pipeline
 
-1. **Add Players**: (Admin only) Add players to the system with their details
-2. **Create Teams**: (Admin only) Create teams and assign a manager from existing players
-3. **Add Players to Teams**: (Admin only) Assign players to teams
-4. **Record Contributions**: (Admin only) Record financial contributions from team members
-5. **Create Matches**: (Admin only) Create matches with expenses, select participating players, and mark non-paying players (if any)
-6. **Automatic Expense Calculation**: The system automatically divides match expenses equally among paying players only
-7. **View Player Accounts**: View individual player accounts to see their contribution history, match expenses, and current balance
-8. **Track Expenses**: (Admin only) Track other team expenses by category
-9. **View Dashboard**: View summary statistics for the entire system
+### Continuous Integration
+**Triggers**: Push/PR to `main` or `develop`
+- Multi-version Node.js testing (18.x, 20.x)
+- Security vulnerability scanning
+- Code quality checks
+- Frontend and backend build verification
 
-### Match Expense Calculation
-When you create a match:
-- Enter ground fee, ball amount, and any other expenses
-- Select all players who participated
-- Optionally mark some players as "Non-paying" (e.g., guest players who don't contribute financially)
-- The system automatically:
-  - Calculates total expense (sum of all expense items)
-  - Divides total equally among paying players only (non-paying players have ₹0 expense share)
-  - Records each player's share
-  - Deducts the share from paying players' contribution balance
+### Continuous Deployment
+**Backend**: Deploys to Azure Web App on push to `main` (server files)
+**Frontend**: Deploys to Azure Static Web App on push to `main` (client files)
 
-## Deployment
+**Features**:
+- Automated health checks
+- Environment variable management
+- Deployment summaries
+- Manual deployment option
 
-### Azure Deployment
+## Monitoring & Logging
 
-This application is configured for Azure deployment with automated CI/CD pipelines.
+### Application Insights Integration
+- End-to-end request tracing with correlation IDs
+- Performance monitoring
+- Error tracking
+- Custom events and metrics
+- Live metrics stream
 
-**Quick Start:**
-1. Deploy Azure resources using ARM templates: [azure/README.md](azure/README.md)
-2. Configure GitHub secrets for CI/CD: [CI_CD_SETUP_GUIDE.md](CI_CD_SETUP_GUIDE.md)
-3. Push to main branch to trigger automatic deployment
+### Logging Levels
+```javascript
+logger.info('Informational message');
+logger.warn('Warning message');
+logger.error('Error occurred', error);
+logger.debug('Debug information');
+```
 
-**Documentation:**
-- 📘 [Complete Azure Deployment Guide](AZURE_DEPLOYMENT_GUIDE.md)
-- 🚀 [Quick Start Guide](DEPLOYMENT_QUICK_START.md)
-- ⚙️ [CI/CD Setup Guide](CI_CD_SETUP_GUIDE.md)
-- 📊 [Logging Framework Guide](LOGGING_GUIDE.md)
+See [LOGGING_GUIDE.md](LOGGING_GUIDE.md) for complete documentation.
 
-### Local Development vs Production
+## Security Features
 
-| Feature | Local | Production |
-|---------|-------|------------|
-| Database | SQLite | Azure SQL Server |
-| Backend | localhost:5000 | Azure Web App |
-| Frontend | localhost:3000 | Azure Static Web App |
-| Logging | Console | Application Insights |
-| Environment | NODE_ENV=local | NODE_ENV=production |
-
-Configuration automatically switches based on environment variables.
+- ✅ JWT token-based authentication
+- ✅ Password hashing with bcryptjs
+- ✅ Security questions for password reset
+- ✅ Role-based access control
+- ✅ HTTPS-only in production
+- ✅ SQL injection protection
+- ✅ Automated vulnerability scanning
+- ✅ Secret detection in CI/CD
+- ✅ CORS configuration
 
 ## Documentation
 
-### Setup & Deployment
-- [Installation & Local Setup](#installation) - This file
-- [Azure Deployment Guide](AZURE_DEPLOYMENT_GUIDE.md) - Complete Azure deployment instructions
-- [Quick Start Deployment](DEPLOYMENT_QUICK_START.md) - 5-step Azure deployment
-- [Deployment Summary](DEPLOYMENT_SUMMARY.md) - Configuration overview
-- [CI/CD Setup Guide](CI_CD_SETUP_GUIDE.md) - GitHub Actions & ARM templates
-- [Git Setup Instructions](GIT_SETUP_INSTRUCTIONS.md) - GitHub repository setup
+| Document | Description |
+|----------|-------------|
+| [QUICK_START_CHECKLIST.md](QUICK_START_CHECKLIST.md) | Interactive deployment checklist |
+| [CI_CD_SETUP_GUIDE.md](CI_CD_SETUP_GUIDE.md) | Complete CI/CD setup guide |
+| [AZURE_DEPLOYMENT_GUIDE.md](AZURE_DEPLOYMENT_GUIDE.md) | Detailed Azure deployment |
+| [DEPLOYMENT_QUICK_START.md](DEPLOYMENT_QUICK_START.md) | 5-step quick deployment |
+| [LOGGING_GUIDE.md](LOGGING_GUIDE.md) | Logging framework documentation |
+| [azure/README.md](azure/README.md) | ARM template documentation |
+| [.github/workflows/README.md](.github/workflows/README.md) | GitHub Actions workflows |
 
-### Features & Usage
-- [Logging Framework](LOGGING_GUIDE.md) - Application Insights integration
-- [Logging Quick Reference](LOGGING_QUICK_REFERENCE.md) - Quick logging commands
-- [Logging Setup](LOGGING_SETUP.md) - Setup instructions
+## Cost Estimate (Azure)
 
-### Infrastructure
-- [ARM Templates](azure/README.md) - Azure Resource Manager templates
-- [GitHub Actions Workflows](.github/workflows/README.md) - CI/CD workflow documentation
+| Tier | Resources | Monthly Cost |
+|------|-----------|--------------|
+| **Development** | B1 App Service, S0 SQL, Free Static Web App | ~$28 |
+| **Production** | S1 App Service, S1 SQL, Standard Static Web App | ~$119 |
 
 ## Build Status
 
@@ -345,11 +343,23 @@ Configuration automatically switches based on environment variables.
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create a feature branch (`git checkout -b feature/new-feature`)
+3. Commit changes (`git commit -m 'Add new feature'`)
+4. Push to branch (`git push origin feature/new-feature`)
 5. Open a Pull Request
 
 ## License
 
-MIT
+MIT License - see LICENSE file for details
+
+## Support
+
+- **Issues**: https://github.com/rams4tech/cricketteamexpenseapp/issues
+- **Documentation**: See links above
+- **Azure Logs**: `az webapp log tail --resource-group cricket-expense-rg --name your-webapp`
+
+---
+
+**Version**: 1.0.0
+**Last Updated**: 2026-01-02
+**Author**: Generated with Claude Code
