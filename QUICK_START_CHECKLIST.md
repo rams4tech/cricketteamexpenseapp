@@ -105,9 +105,12 @@ echo "SQL Server: $SQL_SERVER"
 STATIC_TOKEN=$(az staticwebapp secrets list --name cricket-expense-web --resource-group cricket-expense-rg --query properties.apiKey -o tsv)
 echo "Static Web App Token: $STATIC_TOKEN"
 
-# Get App Insights key
+# Get App Insights keys
 APPINSIGHTS_KEY=$(az deployment group show --resource-group cricket-expense-rg --name azuredeploy --query properties.outputs.appInsightsInstrumentationKey.value -o tsv)
 echo "App Insights Key: $APPINSIGHTS_KEY"
+
+APPINSIGHTS_CONNECTION=$(az deployment group show --resource-group cricket-expense-rg --name azuredeploy --query properties.outputs.appInsightsConnectionString.value -o tsv)
+echo "App Insights Connection String: $APPINSIGHTS_CONNECTION"
 ```
 
 - [ ] All values retrieved
@@ -128,12 +131,13 @@ gh secret set AZURE_SQL_USER --body "sqladmin"
 gh secret set AZURE_SQL_PASSWORD --body "YourStrongPassword123!"
 gh secret set JWT_SECRET --body "your-super-secure-jwt-secret-key-minimum-32-characters"
 gh secret set APPINSIGHTS_INSTRUMENTATION_KEY --body "$APPINSIGHTS_KEY"
+gh secret set APPLICATIONINSIGHTS_CONNECTION_STRING --body "$APPINSIGHTS_CONNECTION"
 gh secret set AZURE_STATIC_WEB_APPS_API_TOKEN --body "$STATIC_TOKEN"
 gh secret set REACT_APP_API_URL --body "https://$WEBAPP_NAME.azurewebsites.net/api"
 gh secret set REACT_APP_APPINSIGHTS_KEY --body "$APPINSIGHTS_KEY"
 ```
 
-- [ ] All 12 secrets configured
+- [ ] All 13 secrets configured
 
 **Or set via GitHub web UI:**
 
@@ -150,6 +154,7 @@ Go to: `https://github.com/rams4tech/cricketteamexpenseapp/settings/secrets/acti
 | AZURE_SQL_PASSWORD | Your SQL password |
 | JWT_SECRET | Your JWT secret |
 | APPINSIGHTS_INSTRUMENTATION_KEY | From deployment outputs |
+| APPLICATIONINSIGHTS_CONNECTION_STRING | From deployment outputs |
 | AZURE_STATIC_WEB_APPS_API_TOKEN | From static web app |
 | REACT_APP_API_URL | https://your-webapp.azurewebsites.net/api |
 | REACT_APP_APPINSIGHTS_KEY | Same as APPINSIGHTS_INSTRUMENTATION_KEY |

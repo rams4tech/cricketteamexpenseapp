@@ -131,6 +131,11 @@ jobs:
               "slotSetting": false
             },
             {
+              "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+              "value": "${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}",
+              "slotSetting": false
+            },
+            {
               "name": "LOGGING_TYPE",
               "value": "applicationInsights",
               "slotSetting": false

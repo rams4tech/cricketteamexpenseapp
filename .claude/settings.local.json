@@ -19,7 +19,8 @@
       "Bash(del servertest-api.js serververify-server.js)",
       "Bash(del:*)",
       "Bash(ls:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(cat:*)"
     ]
   }
 }

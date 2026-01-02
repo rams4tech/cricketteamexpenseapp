@@ -210,7 +210,8 @@ From deployment outputs or Azure Portal:
 | `AZURE_SQL_USER` | SQL admin username | `sqladmin` (or your choice) |
 | `AZURE_SQL_PASSWORD` | SQL admin password | Password used during deployment |
 | `JWT_SECRET` | JWT signing key | Same value used during deployment |
-| `APPINSIGHTS_INSTRUMENTATION_KEY` | App Insights key | From deployment output |
+| `APPINSIGHTS_INSTRUMENTATION_KEY` | App Insights key | From deployment output `appInsightsInstrumentationKey` |
+| `APPLICATIONINSIGHTS_CONNECTION_STRING` | App Insights connection string | From deployment output `appInsightsConnectionString` |
 
 #### 3. Static Web App Token
 
@@ -245,6 +246,7 @@ Required Secrets:
 ├── AZURE_SQL_PASSWORD
 ├── JWT_SECRET
 ├── APPINSIGHTS_INSTRUMENTATION_KEY
+├── APPLICATIONINSIGHTS_CONNECTION_STRING
 ├── AZURE_STATIC_WEB_APPS_API_TOKEN
 ├── REACT_APP_API_URL
 └── REACT_APP_APPINSIGHTS_KEY (optional)
@@ -263,8 +265,10 @@ gh secret set AZURE_SQL_USER --body "sqladmin"
 gh secret set AZURE_SQL_PASSWORD --body "YourStrongPassword123!"
 gh secret set JWT_SECRET --body "your-super-secure-jwt-secret-key"
 gh secret set APPINSIGHTS_INSTRUMENTATION_KEY --body "$(az deployment group show --resource-group cricket-expense-rg --name azuredeploy --query properties.outputs.appInsightsInstrumentationKey.value -o tsv)"
+gh secret set APPLICATIONINSIGHTS_CONNECTION_STRING --body "$(az deployment group show --resource-group cricket-expense-rg --name azuredeploy --query properties.outputs.appInsightsConnectionString.value -o tsv)"
 gh secret set AZURE_STATIC_WEB_APPS_API_TOKEN --body "$(az staticwebapp secrets list --name cricket-expense-web --resource-group cricket-expense-rg --query properties.apiKey -o tsv)"
 gh secret set REACT_APP_API_URL --body "https://$(az deployment group show --resource-group cricket-expense-rg --name azuredeploy --query properties.outputs.webAppName.value -o tsv).azurewebsites.net/api"
+gh secret set REACT_APP_APPINSIGHTS_KEY --body "$(az deployment group show --resource-group cricket-expense-rg --name azuredeploy --query properties.outputs.appInsightsInstrumentationKey.value -o tsv)"
 ```
 
 ---
