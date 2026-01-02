@@ -66,11 +66,19 @@ jobs:
     - name: Get Static Web App Deployment Token
       id: get-swa-token
       run: |
+        echo "Retrieving Static Web App deployment token..."
         TOKEN=$(az staticwebapp secrets list \
           --name cricketteamexpense \
           --resource-group cricket-expense-rg \
           --query properties.apiKey \
           --output tsv)
+
+        if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+          echo "❌ Failed to retrieve Static Web App token"
+          exit 1
+        fi
+
+        echo "✅ Token retrieved successfully"
         echo "::add-mask::$TOKEN"
         echo "token=$TOKEN" >> $GITHUB_OUTPUT
 
@@ -104,7 +112,7 @@ jobs:
         name: backend-deployment-package
         path: ./backend-deploy
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        run_id: ${{ github.event.workflow_run.id }}
+        run_id: ${{ github.event.workflow_run.id || '' }}
         if_no_artifact_found: fail
 
     - name: Create deployment zip
@@ -252,7 +260,7 @@ jobs:
         name: frontend-deployment-package
         path: ./frontend-build
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        run_id: ${{ github.event.workflow_run.id }}
+        run_id: ${{ github.event.workflow_run.id || '' }}
         if_no_artifact_found: fail
 
     - name: Verify build artifact
