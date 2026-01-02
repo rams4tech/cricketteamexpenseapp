@@ -25,7 +25,20 @@
       "Bash(REACT_APP_API_URL=http://localhost:5000/api CI=true npm run build:*)",
       "Bash(az staticwebapp secrets list:*)",
       "Bash(az group:*)",
-      "Bash(az resource list:*)"
+      "Bash(az resource list:*)",
+      "Bash(az account:*)",
+      "Bash(az deployment group create:*)",
+      "Bash(tee:*)",
+      "Bash(az sql server delete:*)",
+      "Bash(for:*)",
+      "Bash(do az group exists --name cricket-expense-rg)",
+      "Bash(exists=\"true\")",
+      "Bash(exists=\"false\")",
+      "Bash(if [ \"$exists\" = \"false\" ])",
+      "Bash(break)",
+      "Bash(fi)",
+      "Bash(echo:*)",
+      "Bash(done)"
     ]
   }
 }

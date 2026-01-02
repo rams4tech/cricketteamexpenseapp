@@ -11,9 +11,9 @@
     },
     "location": {
       "type": "string",
-      "defaultValue": "southindia",
+      "defaultValue": "eastasia",
       "metadata": {
-        "description": "Location for all resources (South India region)"
+        "description": "Location for all resources (East Asia region)"
       }
     },
     "sqlAdministratorLogin": {
@@ -77,7 +77,7 @@
         "West US 2"
       ],
       "metadata": {
-        "description": "Location for Static Web App (East Asia is closest available to South India)"
+        "description": "Location for Static Web App (same as backend resources)"
       }
     }
   },
