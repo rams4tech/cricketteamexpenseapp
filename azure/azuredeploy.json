@@ -11,9 +11,9 @@
     },
     "location": {
       "type": "string",
-      "defaultValue": "[resourceGroup().location]",
+      "defaultValue": "southindia",
       "metadata": {
-        "description": "Location for all resources"
+        "description": "Location for all resources (South India region)"
       }
     },
     "sqlAdministratorLogin": {
@@ -68,16 +68,17 @@
     },
     "staticWebAppLocation": {
       "type": "string",
-      "defaultValue": "East US 2",
+      "defaultValue": "Central India",
       "allowedValues": [
-        "Central US",
-        "East US 2",
+        "Central India",
         "East Asia",
         "West Europe",
+        "Central US",
+        "East US 2",
         "West US 2"
       ],
       "metadata": {
-        "description": "Location for Static Web App"
+        "description": "Location for Static Web App (Central India is closest to South India)"
       }
     }
   },

@@ -119,7 +119,7 @@ az account set --subscription "Your-Subscription-Name"
 # Create resource group
 az group create \
   --name cricket-expense-rg \
-  --location eastus
+  --location southindia
 
 # Deploy ARM template
 az deployment group create \
@@ -146,7 +146,7 @@ az deployment group show \
 5. Click "Save"
 6. Fill in parameters:
    - **Project Name**: cricket-expense
-   - **Location**: East US
+   - **Location**: South India
    - **SQL Administrator Password**: Strong password
    - **JWT Secret**: Secure random string (min 32 chars)
 7. Click "Review + Create" → "Create"

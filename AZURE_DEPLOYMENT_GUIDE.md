@@ -97,7 +97,7 @@ az login
 # Create resource group
 az group create \
   --name cricket-expense-rg \
-  --location eastus
+  --location southindia
 ```
 
 ### Step 2: Create Azure SQL Database
@@ -107,7 +107,7 @@ az group create \
 az sql server create \
   --name cricket-expense-sqlserver \
   --resource-group cricket-expense-rg \
-  --location eastus \
+  --location southindia \
   --admin-user sqladmin \
   --admin-password 'YourStrongPassword123!'
 
@@ -134,7 +134,7 @@ az sql server firewall-rule create \
 # Create Application Insights
 az monitor app-insights component create \
   --app cricket-expense-insights \
-  --location eastus \
+  --location southindia \
   --resource-group cricket-expense-rg \
   --application-type web
 
@@ -173,7 +173,7 @@ az webapp create \
 az staticwebapp create \
   --name cricket-expense-web \
   --resource-group cricket-expense-rg \
-  --location eastus
+  --location southindia
 ```
 
 ---

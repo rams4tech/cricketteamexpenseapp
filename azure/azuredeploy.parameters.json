@@ -6,7 +6,7 @@
       "value": "cricket-expense"
     },
     "location": {
-      "value": "East US"
+      "value": "southindia"
     },
     "sqlAdministratorLogin": {
       "value": "sqladmin"
@@ -24,7 +24,7 @@
       "value": "REPLACE_WITH_STRONG_JWT_SECRET"
     },
     "staticWebAppLocation": {
-      "value": "East US 2"
+      "value": "Central India"
     }
   }
 }

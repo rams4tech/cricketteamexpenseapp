@@ -45,7 +45,7 @@ az account show  # Verify correct subscription
 
 ```bash
 # Create resource group
-az group create --name cricket-expense-rg --location eastus
+az group create --name cricket-expense-rg --location southindia
 
 # Deploy resources
 az deployment group create \

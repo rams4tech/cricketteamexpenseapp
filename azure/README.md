@@ -56,7 +56,7 @@ The ARM template creates the following Azure resources:
 az login
 
 # Create resource group
-az group create --name cricket-expense-rg --location eastus
+az group create --name cricket-expense-rg --location southindia
 
 # Deploy template
 az deployment group create \
@@ -96,7 +96,7 @@ az deployment group create \
 | appServicePlanSku | string | B1 | App Service Plan SKU |
 | sqlDatabaseSku | string | S0 | SQL Database tier |
 | jwtSecret | securestring | (required) | JWT signing key |
-| staticWebAppLocation | string | East US 2 | Static Web App location |
+| staticWebAppLocation | string | Central India | Static Web App location |
 
 ## Outputs
 

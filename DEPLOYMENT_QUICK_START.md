@@ -11,12 +11,12 @@ Quick reference for deploying the Cricket Expense Management Application to Azur
 az login
 
 # Create everything
-az group create --name cricket-expense-rg --location eastus
+az group create --name cricket-expense-rg --location southindia
 
 az sql server create \
   --name cricket-expense-sqlserver \
   --resource-group cricket-expense-rg \
-  --location eastus \
+  --location southindia \
   --admin-user sqladmin \
   --admin-password 'YourStrongPassword123!'
 
@@ -31,7 +31,7 @@ az webapp up \
   --name cricket-expense-api \
   --runtime "NODE:18-lts" \
   --sku B1 \
-  --location eastus
+  --location southindia
 ```
 
 ### 2. Configure Environment Variables

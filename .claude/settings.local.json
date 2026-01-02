@@ -18,7 +18,8 @@
       "Bash(npm install:*)",
       "Bash(del servertest-api.js serververify-server.js)",
       "Bash(del:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
