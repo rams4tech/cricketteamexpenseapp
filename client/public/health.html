@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Check</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .health-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .status {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .healthy {
+            color: #4CAF50;
+        }
+        .details {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="health-container">
+        <div class="status healthy">✓</div>
+        <h1>Application Healthy</h1>
+        <div class="details">
+            <p><strong>Status:</strong> <span id="status">healthy</span></p>
+            <p><strong>Environment:</strong> <span id="environment">production</span></p>
+            <p><strong>Timestamp:</strong> <span id="timestamp"></span></p>
+            <p><strong>Version:</strong> 1.0.0</p>
+        </div>
+    </div>
+    <script>
+        // Set timestamp
+        document.getElementById('timestamp').textContent = new Date().toISOString();
+
+        // Set environment from window or default
+        const env = window.location.hostname === 'localhost' ? 'development' : 'production';
+        document.getElementById('environment').textContent = env;
+
+        // Return JSON if Accept header requests it (for programmatic access)
+        if (window.performance && window.performance.navigation.type === 0) {
+            const acceptHeader = window.navigator.userAgent.toLowerCase().includes('bot') ||
+                               window.location.search.includes('format=json');
+
+            if (acceptHeader && window.location.search.includes('format=json')) {
+                document.body.innerHTML = '<pre>' + JSON.stringify({
+                    status: 'healthy',
+                    timestamp: new Date().toISOString(),
+                    environment: env,
+                    version: '1.0.0'
+                }, null, 2) + '</pre>';
+            }
+        }
+    </script>
+</body>
+</html>

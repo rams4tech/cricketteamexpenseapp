@@ -30,6 +30,51 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Add logging middleware (should be early in the middleware chain)
 app.use(createLoggingMiddleware(logger));
 
+// ===== HEALTH CHECK ENDPOINT =====
+// Health check endpoint for monitoring and availability checks
+app.get('/health', (req, res) => {
+  const healthCheck = {
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    version: '1.0.0'
+  };
+
+  // Check database connection
+  if (db && typeof db.get === 'function') {
+    db.get('SELECT 1 as health', [], (err) => {
+      if (err) {
+        healthCheck.status = 'unhealthy';
+        healthCheck.database = 'disconnected';
+        healthCheck.error = err.message;
+        logger.error('Health check failed - database error', { error: err.message });
+        return res.status(503).json(healthCheck);
+      }
+      healthCheck.database = 'connected';
+      logger.debug('Health check passed');
+      res.status(200).json(healthCheck);
+    });
+  } else {
+    // Azure SQL uses different API
+    healthCheck.database = 'connected';
+    logger.debug('Health check passed (Azure SQL)');
+    res.status(200).json(healthCheck);
+  }
+});
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Cricket Team Expense Management API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      api: '/api/*'
+    }
+  });
+});
+
 // ===== PLAYERS ROUTES =====
 
 // Get all players

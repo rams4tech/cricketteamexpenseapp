@@ -210,23 +210,28 @@ jobs:
         echo "Waiting for app to start..."
         sleep 30
 
-        HEALTH_URL="${{ needs.deploy-infrastructure.outputs.webAppUrl }}/api/summary"
+        HEALTH_URL="${{ needs.deploy-infrastructure.outputs.webAppUrl }}/health"
 
         for i in {1..5}; do
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL || echo "000")
           echo "Health check attempt $i: HTTP $HTTP_STATUS"
 
-          if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "401" ]; then
+          if [ "$HTTP_STATUS" = "200" ]; then
             echo "✅ Application is healthy!"
+
+            # Get health check details
+            HEALTH_RESPONSE=$(curl -s $HEALTH_URL || echo "")
+            echo "Health check response: $HEALTH_RESPONSE"
             exit 0
           fi
 
+          echo "Waiting 10 seconds before next attempt..."
           sleep 10
         done
 
-        echo "⚠️ Health check did not return expected status"
-        exit 0
-      continue-on-error: true
+        echo "⚠️ Health check did not return 200 status after 5 attempts"
+        exit 1
+      continue-on-error: false
 
     - name: Logout from Azure
       run: az logout
