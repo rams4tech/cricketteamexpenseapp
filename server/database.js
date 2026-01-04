@@ -156,8 +156,8 @@ if (config.useSQLite()) {
 
   db = new AzureSQLAdapter();
 
-  // Initialize Azure SQL connection and schema with retry logic
-  (async () => {
+  // Store initialization promise for server to wait on
+  db.initializationPromise = (async () => {
     const maxRetries = 5;
     const retryDelay = 5000; // 5 seconds
     let retryCount = 0;
@@ -180,6 +180,7 @@ if (config.useSQLite()) {
         console.log('Database schema created successfully');
 
         // Connection successful, break the retry loop
+        db.ready = true;
         break;
       } catch (err) {
         retryCount++;

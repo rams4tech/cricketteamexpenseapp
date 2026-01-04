@@ -1441,11 +1441,28 @@ app.get('/api/admin/dashboard', authenticateToken, (req, res) => {
 // Add error logging middleware (must be after all routes)
 app.use(createErrorLoggingMiddleware(logger));
 
-// Start server
-app.listen(PORT, () => {
-  logger.info('Server started successfully', {
-    port: PORT,
-    environment: process.env.NODE_ENV || 'development'
-  });
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+// Start server - wait for database initialization if using Azure SQL
+async function startServer() {
+  try {
+    // Wait for Azure SQL database initialization if needed
+    if (db.initializationPromise) {
+      console.log('Waiting for database initialization...');
+      await db.initializationPromise;
+      console.log('Database initialization complete, starting server...');
+    }
+
+    app.listen(PORT, () => {
+      logger.info('Server started successfully', {
+        port: PORT,
+        environment: process.env.NODE_ENV || 'development'
+      });
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  } catch (err) {
+    logger.error('Failed to start server', { error: err.message });
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
+}
+
+startServer();

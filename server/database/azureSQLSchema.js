@@ -8,23 +8,7 @@ const createSchema = async (db) => {
   console.log('Creating Azure SQL schema...');
 
   try {
-    // Create users table
-    await db.pool.request().query(`
-      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='users' and xtype='U')
-      CREATE TABLE users (
-        id INT IDENTITY(1,1) PRIMARY KEY,
-        username NVARCHAR(255) UNIQUE NOT NULL,
-        password NVARCHAR(255) NOT NULL,
-        role NVARCHAR(50) NOT NULL DEFAULT 'player',
-        player_id INT,
-        security_question NVARCHAR(500),
-        security_answer NVARCHAR(255),
-        created_at DATETIME DEFAULT GETDATE()
-      )
-    `);
-    console.log('✓ Users table created');
-
-    // Create players table
+    // Create players table FIRST (referenced by users and other tables)
     await db.pool.request().query(`
       IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='players' and xtype='U')
       CREATE TABLE players (
@@ -39,6 +23,23 @@ const createSchema = async (db) => {
       )
     `);
     console.log('✓ Players table created');
+
+    // Create users table (references players)
+    await db.pool.request().query(`
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='users' and xtype='U')
+      CREATE TABLE users (
+        id INT IDENTITY(1,1) PRIMARY KEY,
+        username NVARCHAR(255) UNIQUE NOT NULL,
+        password NVARCHAR(255) NOT NULL,
+        role NVARCHAR(50) NOT NULL DEFAULT 'player',
+        player_id INT,
+        security_question NVARCHAR(500),
+        security_answer NVARCHAR(255),
+        created_at DATETIME DEFAULT GETDATE(),
+        FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE SET NULL
+      )
+    `);
+    console.log('✓ Users table created');
 
     // Create teams table
     await db.pool.request().query(`
