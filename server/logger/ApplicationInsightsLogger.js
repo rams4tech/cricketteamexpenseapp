@@ -18,30 +18,40 @@ class ApplicationInsightsLogger extends ILogger {
       return;
     }
 
-    this.isEnabled = true;
+    try {
+      // Setup Application Insights
+      appInsights.setup(instrumentationKey)
+        .setAutoCollectRequests(true)       // Auto-collect HTTP requests
+        .setAutoCollectPerformance(true)    // Auto-collect performance counters
+        .setAutoCollectExceptions(true)     // Auto-collect exceptions
+        .setAutoCollectDependencies(true)   // Auto-collect dependencies (DB, HTTP)
+        .setAutoCollectConsole(true)        // Auto-collect console logs
+        .setUseDiskRetryCaching(true)       // Retry on network failures
+        .setSendLiveMetrics(config.enableLiveMetrics || false)  // Live metrics stream
+        .setDistributedTracingMode(appInsights.DistributedTracingModes.AI_AND_W3C);  // W3C trace context
 
-    // Setup Application Insights
-    appInsights.setup(instrumentationKey)
-      .setAutoCollectRequests(true)       // Auto-collect HTTP requests
-      .setAutoCollectPerformance(true)    // Auto-collect performance counters
-      .setAutoCollectExceptions(true)     // Auto-collect exceptions
-      .setAutoCollectDependencies(true)   // Auto-collect dependencies (DB, HTTP)
-      .setAutoCollectConsole(true)        // Auto-collect console logs
-      .setUseDiskRetryCaching(true)       // Retry on network failures
-      .setSendLiveMetrics(config.enableLiveMetrics || false)  // Live metrics stream
-      .setDistributedTracingMode(appInsights.DistributedTracingModes.AI_AND_W3C);  // W3C trace context
+      // Set cloud role name for better filtering in Azure
+      if (config.cloudRoleName) {
+        appInsights.defaultClient.context.tags[appInsights.defaultClient.context.keys.cloudRole] = config.cloudRoleName;
+      }
 
-    // Set cloud role name for better filtering in Azure
-    if (config.cloudRoleName) {
-      appInsights.defaultClient.context.tags[appInsights.defaultClient.context.keys.cloudRole] = config.cloudRoleName;
+      // Start collection
+      appInsights.start();
+
+      this.client = appInsights.defaultClient;
+      this.isEnabled = !!(this.client && appInsights.Contracts);
+
+      if (this.isEnabled) {
+        console.log('Application Insights initialized successfully');
+      } else {
+        console.warn('Application Insights started but client not ready. Falling back to console logging.');
+      }
+    } catch (error) {
+      console.error('Failed to initialize Application Insights:', error.message);
+      console.warn('Falling back to console-only logging');
+      this.isEnabled = false;
+      this.client = null;
     }
-
-    // Start collection
-    appInsights.start();
-
-    this.client = appInsights.defaultClient;
-
-    console.log('Application Insights initialized successfully');
   }
 
   /**
