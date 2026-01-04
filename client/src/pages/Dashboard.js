@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { getLogger } from '../services/logger';
-
-const logger = getLogger();
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { getLogger } from '../services/logger';
+
+const logger = getLogger();
 
 function Dashboard() {
   const navigate = useNavigate();

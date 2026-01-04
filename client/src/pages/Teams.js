@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import { getLogger } from '../services/logger';
 
 const logger = getLogger();
-import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
 
 function Teams() {
   const { isAdmin } = useAuth();

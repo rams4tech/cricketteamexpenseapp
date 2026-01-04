@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { getLogger } from '../services/logger';
 
 const logger = getLogger();
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
 function PlayerAccount() {
   const { id } = useParams();
