@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import { getLogger } from '../services/logger';
+
+const logger = getLogger();
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
 function Teams() {
   const { isAdmin } = useAuth();
   const [teams, setTeams] = useState([]);
+
+  useEffect(() => {
+    logger.info('Teams page loaded');
+    logger.trackPageView('Teams', window.location.href);
+  }, []);
   const [players, setPlayers] = useState([]);
   const [formData, setFormData] = useState({
     name: '',

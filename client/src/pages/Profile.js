@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { getLogger } from '../services/logger';
+
+const logger = getLogger();
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -7,6 +10,11 @@ function Profile() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [profileData, setProfileData] = useState(null);
+
+  useEffect(() => {
+    logger.info('Profile page loaded');
+    logger.trackPageView('Profile', window.location.href);
+  }, []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 

@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { getLogger } from '../services/logger';
+
+const logger = getLogger();
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -6,6 +9,11 @@ function PlayerAccount() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [accountData, setAccountData] = useState(null);
+
+  useEffect(() => {
+    logger.info('PlayerAccount page loaded');
+    logger.trackPageView('PlayerAccount', window.location.href);
+  }, []);
   const [loading, setLoading] = useState(true);
 
   const fetchAccountData = React.useCallback(async () => {

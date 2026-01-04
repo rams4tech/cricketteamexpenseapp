@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import { getLogger } from '../services/logger';
+
+const logger = getLogger();
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
 function Expenses() {
   const { isAdmin } = useAuth();
   const [expenses, setExpenses] = useState([]);
+
+  useEffect(() => {
+    logger.info('Expenses page loaded');
+    logger.trackPageView('Expenses', window.location.href);
+  }, []);
   const [formData, setFormData] = useState({
     description: '',
     amount: '',

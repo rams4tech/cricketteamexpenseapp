@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { getLogger } from '../services/logger';
+
+const logger = getLogger();
 
 function Signup() {
   const navigate = useNavigate();
@@ -19,6 +22,11 @@ function Signup() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    logger.info('Signup page loaded');
+    logger.trackPageView('Signup', window.location.href);
+  }, []);
 
   const securityQuestions = [
     "What was the name of your first pet?",
@@ -45,15 +53,23 @@ function Signup() {
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      logger.warn('Signup validation failed - passwords do not match', { username: formData.username });
       return;
     }
 
     if (formData.password.length < 6) {
       setError('Password must be at least 6 characters long');
+      logger.warn('Signup validation failed - password too short', { username: formData.username });
       return;
     }
 
     setLoading(true);
+    logger.info('Signup attempt started', {
+      username: formData.username,
+      firstname: formData.firstname,
+      lastname: formData.lastname
+    });
+    logger.trackEvent('SignupAttempt', { username: formData.username });
 
     try {
       const signupData = {
@@ -68,6 +84,8 @@ function Signup() {
       };
 
       await axios.post('/api/auth/signup', signupData);
+      logger.info('Signup successful', { username: formData.username });
+      logger.trackEvent('SignupSuccess', { username: formData.username });
 
       // Auto-login after successful signup
       const loginResponse = await axios.post('/api/auth/login', {
@@ -76,6 +94,10 @@ function Signup() {
       });
 
       const { token, user } = loginResponse.data;
+      logger.info('Auto-login after signup successful', { username: user.username, role: user.role });
+
+      // Set user context in logger
+      logger.setUser(user.username, user.id);
 
       // Use AuthContext login function
       login(user, token);
@@ -83,6 +105,15 @@ function Signup() {
       // Redirect to profile page
       navigate('/profile');
     } catch (error) {
+      logger.error('Signup failed', error, {
+        username: formData.username,
+        errorMessage: error.response?.data?.error,
+        statusCode: error.response?.status
+      });
+      logger.trackEvent('SignupFailure', {
+        username: formData.username,
+        error: error.response?.data?.error || error.message
+      });
       console.error('Signup error:', error);
       setError(error.response?.data?.error || 'Signup failed. Please try again.');
     } finally {

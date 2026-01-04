@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import { getLogger } from '../services/logger';
+
+const logger = getLogger();
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
 function Matches() {
   const { isAdmin } = useAuth();
   const [matches, setMatches] = useState([]);
+
+  useEffect(() => {
+    logger.info('Matches page loaded');
+    logger.trackPageView('Matches', window.location.href);
+  }, []);
   const [teams, setTeams] = useState([]);
   const [players, setPlayers] = useState([]);
   const [formData, setFormData] = useState({

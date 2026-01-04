@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { getLogger } from '../services/logger';
+
+const logger = getLogger();
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -15,6 +18,11 @@ function Dashboard() {
       totalTeams: 0
     }
   });
+
+  useEffect(() => {
+    logger.info('Dashboard page loaded');
+    logger.trackPageView('Dashboard', window.location.href);
+  }, []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 

@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { getLogger } from '../services/logger';
+
+const logger = getLogger();
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -7,6 +10,11 @@ function Players() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const [players, setPlayers] = useState([]);
+
+  useEffect(() => {
+    logger.info('Players page loaded');
+    logger.trackPageView('Players', window.location.href);
+  }, []);
   const [formData, setFormData] = useState({
     firstname: '',
     lastname: '',
