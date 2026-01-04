@@ -74,7 +74,7 @@ class ApplicationInsightsLogger extends ILogger {
   info(message, properties = {}, correlationId = null) {
     const enrichedProps = this._addCorrelationContext(properties, correlationId);
 
-    if (this.isEnabled && this.client && appInsights.Contracts) {
+    if (this.isEnabled && this.client && appInsights.Contracts?.SeverityLevel) {
       this.client.trackTrace({
         message,
         severity: appInsights.Contracts.SeverityLevel.Information,
@@ -91,7 +91,7 @@ class ApplicationInsightsLogger extends ILogger {
   warn(message, properties = {}, correlationId = null) {
     const enrichedProps = this._addCorrelationContext(properties, correlationId);
 
-    if (this.isEnabled && this.client && appInsights.Contracts) {
+    if (this.isEnabled && this.client && appInsights.Contracts?.SeverityLevel) {
       this.client.trackTrace({
         message,
         severity: appInsights.Contracts.SeverityLevel.Warning,
@@ -108,7 +108,7 @@ class ApplicationInsightsLogger extends ILogger {
   error(message, error = null, properties = {}, correlationId = null) {
     const enrichedProps = this._addCorrelationContext(properties, correlationId);
 
-    if (this.isEnabled && this.client && appInsights.Contracts) {
+    if (this.isEnabled && this.client) {
       if (error instanceof Error) {
         this.client.trackException({
           exception: error,
@@ -117,7 +117,7 @@ class ApplicationInsightsLogger extends ILogger {
             message
           }
         });
-      } else {
+      } else if (appInsights.Contracts?.SeverityLevel) {
         this.client.trackTrace({
           message: `${message}${error ? ': ' + error : ''}`,
           severity: appInsights.Contracts.SeverityLevel.Error,
@@ -135,7 +135,7 @@ class ApplicationInsightsLogger extends ILogger {
   debug(message, properties = {}, correlationId = null) {
     const enrichedProps = this._addCorrelationContext(properties, correlationId);
 
-    if (this.isEnabled && this.client && appInsights.Contracts) {
+    if (this.isEnabled && this.client && appInsights.Contracts?.SeverityLevel) {
       this.client.trackTrace({
         message,
         severity: appInsights.Contracts.SeverityLevel.Verbose,
