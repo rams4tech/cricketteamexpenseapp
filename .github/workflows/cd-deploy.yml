@@ -130,69 +130,11 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name: Upload package to Azure Storage (Run From Package)
-      run: |
-        # Check if storage account exists, create if not
-        STORAGE_ACCOUNT=$(az storage account list -g cricket-expense-rg --query "[0].name" -o tsv)
-
-        if [ -z "$STORAGE_ACCOUNT" ]; then
-          echo "Creating storage account..."
-          STORAGE_NAME="cricketdeploy$(date +%s)"
-          az storage account create \
-            --name $STORAGE_NAME \
-            --resource-group cricket-expense-rg \
-            --location eastasia \
-            --sku Standard_LRS \
-            --kind StorageV2
-          STORAGE_ACCOUNT=$STORAGE_NAME
-          echo "✅ Storage account created: $STORAGE_ACCOUNT"
-        else
-          echo "✅ Using existing storage account: $STORAGE_ACCOUNT"
-        fi
-
-        # Create container if it doesn't exist
-        az storage container create \
-          --name deployments \
-          --account-name $STORAGE_ACCOUNT \
-          --public-access off \
-          --auth-mode login || true
-
-        # Upload ZIP to blob storage with timestamp
-        BLOB_NAME="backend-$(date +%Y%m%d-%H%M%S).zip"
-        az storage blob upload \
-          --account-name $STORAGE_ACCOUNT \
-          --container-name deployments \
-          --name $BLOB_NAME \
-          --file deploy.zip \
-          --auth-mode login \
-          --overwrite
-
-        # Generate SAS token valid for 1 year
-        END_DATE=$(date -u -d "1 year" '+%Y-%m-%dT%H:%MZ' 2>/dev/null || date -u -v+1y '+%Y-%m-%dT%H:%MZ')
-        SAS_TOKEN=$(az storage blob generate-sas \
-          --account-name $STORAGE_ACCOUNT \
-          --container-name deployments \
-          --name $BLOB_NAME \
-          --permissions r \
-          --expiry $END_DATE \
-          --https-only \
-          --auth-mode login \
-          -o tsv)
-
-        BLOB_URL="https://${STORAGE_ACCOUNT}.blob.core.windows.net/deployments/${BLOB_NAME}"
-        PACKAGE_URL="${BLOB_URL}?${SAS_TOKEN}"
-        echo "PACKAGE_URL=$PACKAGE_URL" >> $GITHUB_ENV
-        echo "✅ Package uploaded to: $BLOB_URL"
-
-    - name: Configure Run From Package
-      run: |
-        # Set WEBSITE_RUN_FROM_PACKAGE to use the uploaded ZIP
-        az webapp config appsettings set \
-          --name ${{ needs.deploy-infrastructure.outputs.webAppName }} \
-          --resource-group cricket-expense-rg \
-          --settings WEBSITE_RUN_FROM_PACKAGE="$PACKAGE_URL"
-
-        echo "✅ Run From Package configured"
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ needs.deploy-infrastructure.outputs.webAppName }}
+        package: deploy.zip
 
     - name: Configure App Settings
       uses: azure/appservice-settings@v1
