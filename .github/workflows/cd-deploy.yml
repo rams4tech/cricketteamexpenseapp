@@ -112,7 +112,7 @@ jobs:
         name: backend-deployment-package
         path: ./backend-deploy
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        run_id: ${{ github.event.workflow_run.id || '' }}
+        commit: ${{ github.sha }}
         if_no_artifact_found: fail
 
     - name: Create deployment zip
