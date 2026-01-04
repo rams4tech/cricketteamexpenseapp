@@ -6,6 +6,13 @@ server/node_modules/
 # Temp
 deployments/
 LogFiles/
+backend-logs/
+latest-logs/
+azure-logs/
+**/creds.txt
+temp-profile.json
+*.tar.gz
+deploy-hotfix.sh
 
 # Database
 server/*.db
@@ -51,3 +58,5 @@ publish-profile.xml
 azure/azuredeploy.parameters.local.json
 deployment-outputs.json
 azure/deployment-output.json
+kudu_creds.txt
+creds.json
