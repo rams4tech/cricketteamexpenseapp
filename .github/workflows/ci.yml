@@ -93,30 +93,37 @@ jobs:
         echo "✅ Production dependencies installed"
 
     - name: Create deployment package with node_modules
-      working-directory: ./
       run: |
+        cd ..
         mkdir -p backend-deploy
         echo "📦 Creating deployment package with bundled dependencies..."
 
         # Copy all files INCLUDING node_modules (exclude only dev/test files)
-        if [ "$RUNNER_OS" == "Windows" ]; then
-          robocopy server backend-deploy /E /XD coverage /XF *.test.js *.db *.db-journal /NFL /NDL /NJH /NJS || exit 0
-        else
-          cp -r server/. backend-deploy/
-          rm -rf backend-deploy/coverage backend-deploy/*.test.js backend-deploy/*.db backend-deploy/*.db-journal
-        fi
+        echo "Copying server files to backend-deploy..."
+        cp -r server/. backend-deploy/
 
-        cd backend-deploy
+        # Remove dev/test files
+        rm -rf backend-deploy/coverage backend-deploy/*.test.js backend-deploy/*.db backend-deploy/*.db-journal
+
         echo "✅ Deployment package created"
+        cd backend-deploy
         echo ""
         echo "Package contents:"
         ls -la
         echo ""
-        echo "Node modules size:"
-        du -sh node_modules 2>/dev/null || echo "node_modules folder present"
+        echo "Checking node_modules..."
+        if [ -d "node_modules" ]; then
+          echo "✅ node_modules folder present"
+          du -sh node_modules
+          echo "Sample packages:"
+          ls node_modules | head -10
+        else
+          echo "❌ ERROR: node_modules not found!"
+          exit 1
+        fi
         echo ""
         echo "Total package size:"
-        du -sh . 2>/dev/null || dir
+        du -sh .
 
     - name: Upload backend deployment artifact
       uses: actions/upload-artifact@v4
