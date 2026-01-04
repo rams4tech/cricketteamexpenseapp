@@ -136,6 +136,30 @@ jobs:
         app-name: ${{ needs.deploy-infrastructure.outputs.webAppName }}
         package: ./deploy.zip
 
+    - name: Install dependencies on server
+      run: |
+        echo "Installing npm dependencies on Azure Web App via Kudu API..."
+
+        # Get publishing credentials
+        PUBLISH_PROFILE=$(az webapp deployment list-publishing-profiles \
+          --name ${{ needs.deploy-infrastructure.outputs.webAppName }} \
+          --resource-group cricket-expense-rg \
+          --query "[?publishMethod=='MSDeploy']|[0]" -o json)
+
+        KUDU_USER=$(echo $PUBLISH_PROFILE | jq -r '.userName')
+        KUDU_PASS=$(echo $PUBLISH_PROFILE | jq -r '.userPWD')
+        APP_NAME=${{ needs.deploy-infrastructure.outputs.webAppName }}
+
+        # Run npm install via Kudu command API
+        curl -X POST "https://${APP_NAME}.scm.azurewebsites.net/api/command" \
+          -u "${KUDU_USER}:${KUDU_PASS}" \
+          -H "Content-Type: application/json" \
+          -d '{"command":"cd /home/site/wwwroot && npm install --production --no-optional","dir":"/home/site/wwwroot"}' \
+          --max-time 300
+
+        echo "npm install completed"
+      continue-on-error: false
+
     - name: Configure App Settings
       uses: azure/appservice-settings@v1
       with:
