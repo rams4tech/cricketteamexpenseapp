@@ -15,7 +15,7 @@
 module.exports = {
   // Logger type: 'applicationInsights', 'console'
   // Add more types as you implement them: 'datadog', 'newrelic', etc.
-  type: process.env.LOGGING_TYPE || 'console', // Default to console to prevent crashes
+  type: process.env.LOGGING_TYPE || 'applicationInsights', // Default to Application Insights
 
   // Application Insights configuration
   // Prefer connection string (newer) over instrumentation key

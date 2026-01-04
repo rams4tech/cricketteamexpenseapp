@@ -25,14 +25,19 @@ class ApplicationInsightsLogger extends ILogger {
 
     try {
       // Setup Application Insights with connection string (preferred) or instrumentation key
-      // v3.x SDK uses different initialization
+      // v3.x SDK: setup() accepts either connection string or just instrumentation key
+      let setupString;
       if (connectionString) {
         console.log('Initializing Application Insights with connection string');
-        appInsights.setup(connectionString).start();
+        setupString = connectionString;
       } else {
         console.log('Initializing Application Insights with instrumentation key');
-        appInsights.setup(instrumentationKey).start();
+        // v3.x: Convert instrumentation key to connection string format
+        setupString = `InstrumentationKey=${instrumentationKey}`;
       }
+
+      // v3.x: setup().start() pattern
+      appInsights.setup(setupString).start();
 
       this.client = appInsights.defaultClient;
 
