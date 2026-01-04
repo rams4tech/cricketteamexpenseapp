@@ -7,6 +7,11 @@
  */
 
 const config = require('./config/environment');
+const loggingConfig = require('./config/logging.config');
+const { LoggerFactory } = require('./logger');
+
+// Initialize logger
+const logger = LoggerFactory.createLogger(loggingConfig);
 
 let db;
 
@@ -19,9 +24,9 @@ if (config.useSQLite()) {
     path.join(__dirname, config.database.sqlite.filename),
     (err) => {
       if (err) {
-        console.error('Error opening SQLite database:', err.message);
+        logger.error('Error opening SQLite database', err, { environment: config.environment });
       } else {
-        console.log(`Connected to SQLite database (${config.environment} environment)`);
+        logger.info('Connected to SQLite database', { environment: config.environment });
         initSQLiteDatabase();
       }
     }
@@ -145,7 +150,7 @@ if (config.useSQLite()) {
         )
       `);
 
-      console.log('SQLite database tables initialized');
+      logger.info('SQLite database tables initialized');
     });
   }
 
@@ -164,8 +169,9 @@ if (config.useSQLite()) {
 
     while (retryCount < maxRetries) {
       try {
-        console.log(`Attempting to connect to Azure SQL (attempt ${retryCount + 1}/${maxRetries})...`);
-        console.log('Connection config:', {
+        logger.info('Attempting to connect to Azure SQL', {
+          attempt: retryCount + 1,
+          maxRetries: maxRetries,
           server: config.database.azureSQL.server,
           database: config.database.azureSQL.database,
           user: config.database.azureSQL.user,
@@ -173,31 +179,43 @@ if (config.useSQLite()) {
         });
 
         await db.connect();
-        console.log(`Connected to Azure SQL database (${config.environment} environment)`);
+        logger.info('Connected to Azure SQL database', {
+          environment: config.environment,
+          server: config.database.azureSQL.server,
+          database: config.database.azureSQL.database
+        });
 
-        console.log('Creating database schema...');
+        logger.info('Creating database schema...');
         await createSchema(db);
-        console.log('Database schema created successfully');
+        logger.info('Database schema created successfully');
 
         // Connection successful, break the retry loop
         db.ready = true;
         break;
       } catch (err) {
         retryCount++;
-        console.error(`Failed to initialize Azure SQL (attempt ${retryCount}/${maxRetries}):`, err.message);
-
-        if (err.code) {
-          console.error('Error code:', err.code);
-        }
-        if (err.originalError) {
-          console.error('Original error:', err.originalError.message);
-        }
+        logger.error('Failed to initialize Azure SQL', err, {
+          attempt: retryCount,
+          maxRetries: maxRetries,
+          errorCode: err.code,
+          originalError: err.originalError?.message,
+          server: config.database.azureSQL.server,
+          database: config.database.azureSQL.database
+        });
 
         if (retryCount < maxRetries) {
-          console.log(`Retrying in ${retryDelay/1000} seconds...`);
+          logger.info(`Retrying Azure SQL connection`, {
+            retryIn: `${retryDelay/1000} seconds`,
+            nextAttempt: retryCount + 1,
+            maxRetries: maxRetries
+          });
           await new Promise(resolve => setTimeout(resolve, retryDelay));
         } else {
-          console.error('All connection attempts failed. Exiting...');
+          logger.error('All Azure SQL connection attempts failed. Exiting...', null, {
+            totalAttempts: retryCount,
+            server: config.database.azureSQL.server,
+            database: config.database.azureSQL.database
+          });
           process.exit(1);
         }
       }
