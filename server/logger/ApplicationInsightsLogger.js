@@ -1,4 +1,5 @@
 const appInsights = require('applicationinsights');
+const { KnownSeverityLevel } = require('applicationinsights');
 const ILogger = require('./ILogger');
 
 /**
@@ -24,39 +25,29 @@ class ApplicationInsightsLogger extends ILogger {
 
     try {
       // Setup Application Insights with connection string (preferred) or instrumentation key
+      // v3.x SDK uses different initialization
       if (connectionString) {
         console.log('Initializing Application Insights with connection string');
-        appInsights.setup(connectionString);
+        appInsights.setup(connectionString).start();
       } else {
         console.log('Initializing Application Insights with instrumentation key');
-        appInsights.setup(instrumentationKey);
+        appInsights.setup(instrumentationKey).start();
       }
-
-      appInsights
-        .setAutoCollectRequests(true)       // Auto-collect HTTP requests
-        .setAutoCollectPerformance(true)    // Auto-collect performance counters
-        .setAutoCollectExceptions(true)     // Auto-collect exceptions
-        .setAutoCollectDependencies(true)   // Auto-collect dependencies (DB, HTTP)
-        .setAutoCollectConsole(true)        // Auto-collect console logs
-        .setUseDiskRetryCaching(true)       // Retry on network failures
-        .setSendLiveMetrics(config.enableLiveMetrics || false)  // Live metrics stream
-        .setDistributedTracingMode(appInsights.DistributedTracingModes.AI_AND_W3C);  // W3C trace context
-
-      // Set cloud role name for better filtering in Azure
-      if (config.cloudRoleName) {
-        appInsights.defaultClient.context.tags[appInsights.defaultClient.context.keys.cloudRole] = config.cloudRoleName;
-      }
-
-      // Start collection
-      appInsights.start();
 
       this.client = appInsights.defaultClient;
-      this.isEnabled = !!(this.client && appInsights.Contracts);
 
-      if (this.isEnabled) {
+      // Configure after initialization
+      if (this.client) {
+        // Set cloud role name for better filtering in Azure
+        if (config.cloudRoleName && this.client.context && this.client.context.tags) {
+          this.client.context.tags['ai.cloud.role'] = config.cloudRoleName;
+        }
+
         console.log('Application Insights initialized successfully');
+        this.isEnabled = true;
       } else {
-        console.warn('Application Insights started but client not ready. Falling back to console logging.');
+        console.warn('Application Insights client not available. Falling back to console logging.');
+        this.isEnabled = false;
       }
     } catch (error) {
       console.error('Failed to initialize Application Insights:', error.message);
@@ -86,10 +77,10 @@ class ApplicationInsightsLogger extends ILogger {
   info(message, properties = {}, correlationId = null) {
     const enrichedProps = this._addCorrelationContext(properties, correlationId);
 
-    if (this.isEnabled && this.client && appInsights.Contracts?.SeverityLevel) {
+    if (this.isEnabled && this.client && KnownSeverityLevel) {
       this.client.trackTrace({
         message,
-        severity: appInsights.Contracts.SeverityLevel.Information,
+        severity: KnownSeverityLevel.Information,
         properties: enrichedProps
       });
     }
@@ -103,10 +94,10 @@ class ApplicationInsightsLogger extends ILogger {
   warn(message, properties = {}, correlationId = null) {
     const enrichedProps = this._addCorrelationContext(properties, correlationId);
 
-    if (this.isEnabled && this.client && appInsights.Contracts?.SeverityLevel) {
+    if (this.isEnabled && this.client && KnownSeverityLevel) {
       this.client.trackTrace({
         message,
-        severity: appInsights.Contracts.SeverityLevel.Warning,
+        severity: KnownSeverityLevel.Warning,
         properties: enrichedProps
       });
     }
@@ -129,10 +120,10 @@ class ApplicationInsightsLogger extends ILogger {
             message
           }
         });
-      } else if (appInsights.Contracts?.SeverityLevel) {
+      } else if (KnownSeverityLevel) {
         this.client.trackTrace({
           message: `${message}${error ? ': ' + error : ''}`,
-          severity: appInsights.Contracts.SeverityLevel.Error,
+          severity: KnownSeverityLevel.Error,
           properties: enrichedProps
         });
       }
@@ -147,10 +138,10 @@ class ApplicationInsightsLogger extends ILogger {
   debug(message, properties = {}, correlationId = null) {
     const enrichedProps = this._addCorrelationContext(properties, correlationId);
 
-    if (this.isEnabled && this.client && appInsights.Contracts?.SeverityLevel) {
+    if (this.isEnabled && this.client && KnownSeverityLevel) {
       this.client.trackTrace({
         message,
-        severity: appInsights.Contracts.SeverityLevel.Verbose,
+        severity: KnownSeverityLevel.Verbose,
         properties: enrichedProps
       });
     }
