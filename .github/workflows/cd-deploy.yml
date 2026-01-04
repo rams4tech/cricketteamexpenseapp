@@ -136,40 +136,48 @@ jobs:
         app-name: ${{ needs.deploy-infrastructure.outputs.webAppName }}
         package: ./deploy.zip
 
-    - name: Install dependencies on server
+    - name: Trigger Oryx build on Azure
       run: |
-        echo "Installing npm dependencies on Azure Web App via Kudu API..."
+        echo "Waiting for Azure to complete npm install via Oryx build..."
+        echo "This may take 2-3 minutes..."
 
-        # Get publishing credentials
+        # Give Azure time to run Oryx build after ZIP deploy
+        sleep 30
+
+        # Verify deployment by checking if node_modules exists
+        APP_NAME=${{ needs.deploy-infrastructure.outputs.webAppName }}
+
+        # Get publishing credentials for Kudu API
         PUBLISH_PROFILE=$(az webapp deployment list-publishing-profiles \
-          --name ${{ needs.deploy-infrastructure.outputs.webAppName }} \
+          --name ${APP_NAME} \
           --resource-group cricket-expense-rg \
           --query "[?publishMethod=='MSDeploy']|[0]" -o json)
 
         KUDU_USER=$(echo $PUBLISH_PROFILE | jq -r '.userName')
         KUDU_PASS=$(echo $PUBLISH_PROFILE | jq -r '.userPWD')
-        APP_NAME=${{ needs.deploy-infrastructure.outputs.webAppName }}
 
-        # Run npm install via Kudu command API (dir parameter sets working directory)
-        echo "Running npm install in /home/site/wwwroot..."
-        RESPONSE=$(curl -X POST "https://${APP_NAME}.scm.azurewebsites.net/api/command" \
-          -u "${KUDU_USER}:${KUDU_PASS}" \
-          -H "Content-Type: application/json" \
-          -d '{"command":"npm install --production --no-optional","dir":"/home/site/wwwroot"}' \
-          --max-time 300 -s)
+        # Check if node_modules was created
+        echo "Checking if Oryx build completed successfully..."
+        for i in {1..10}; do
+          RESPONSE=$(curl -s "https://${APP_NAME}.scm.azurewebsites.net/api/vfs/site/wwwroot/node_modules/" \
+            -u "${KUDU_USER}:${KUDU_PASS}")
 
-        echo "Kudu API Response:"
-        echo "$RESPONSE"
+          if echo "$RESPONSE" | grep -q "applicationinsights"; then
+            echo "✅ Oryx build completed - node_modules found"
+            break
+          else
+            echo "Waiting for Oryx build... (attempt $i/10)"
+            sleep 20
+          fi
 
-        # Check for errors in response
-        if echo "$RESPONSE" | grep -q '"ExitCode":0'; then
-          echo "✅ npm install completed successfully"
-        else
-          echo "❌ npm install failed"
-          echo "$RESPONSE"
-          exit 1
-        fi
-      continue-on-error: false
+          if [ $i -eq 10 ]; then
+            echo "⚠️ Oryx build may have failed - node_modules not found after 3 minutes"
+            echo "Checking deployment logs..."
+            az webapp log tail --name ${APP_NAME} --resource-group cricket-expense-rg &
+            sleep 10
+            pkill -f "az webapp log tail"
+          fi
+        done
 
     - name: Configure App Settings
       uses: azure/appservice-settings@v1
@@ -230,6 +238,16 @@ jobs:
             {
               "name": "WEBSITE_NODE_DEFAULT_VERSION",
               "value": "~20",
+              "slotSetting": false
+            },
+            {
+              "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
+              "value": "true",
+              "slotSetting": false
+            },
+            {
+              "name": "ENABLE_ORYX_BUILD",
+              "value": "true",
               "slotSetting": false
             }
           ]
