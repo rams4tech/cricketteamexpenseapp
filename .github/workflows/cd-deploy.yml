@@ -35,6 +35,7 @@ jobs:
       appInsightsInstrumentationKey: ${{ steps.arm-deploy.outputs.appInsightsInstrumentationKey }}
       appInsightsConnectionString: ${{ steps.arm-deploy.outputs.appInsightsConnectionString }}
       staticWebAppToken: ${{ steps.get-swa-token.outputs.token }}
+      storageAccountName: ${{ steps.arm-deploy.outputs.storageAccountName }}
 
     steps:
     - name: Checkout code
@@ -115,7 +116,7 @@ jobs:
         commit: ${{ github.sha }}
         if_no_artifact_found: fail
 
-    - name: Create deployment zip
+    - name: Create deployment ZIP
       run: |
         cd backend-deploy
         zip -r ../deploy.zip . -x "*.db" -x "*.db-journal"
@@ -130,80 +131,85 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name: Deploy to Azure Web App
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: ${{ needs.deploy-infrastructure.outputs.webAppName }}
-        package: deploy.zip
+    - name: Upload package to Azure Storage (Run From Package)
+      run: |
+        STORAGE_ACCOUNT="${{ needs.deploy-infrastructure.outputs.storageAccountName }}"
 
-    - name: Configure App Settings
-      uses: azure/appservice-settings@v1
-      with:
-        app-name: ${{ needs.deploy-infrastructure.outputs.webAppName }}
-        app-settings-json: |
-          [
-            {
-              "name": "NODE_ENV",
-              "value": "production",
-              "slotSetting": false
-            },
-            {
-              "name": "DB_TYPE",
-              "value": "mssql",
-              "slotSetting": false
-            },
-            {
-              "name": "AZURE_SQL_SERVER",
-              "value": "${{ needs.deploy-infrastructure.outputs.sqlServerFqdn }}",
-              "slotSetting": false
-            },
-            {
-              "name": "AZURE_SQL_DATABASE",
-              "value": "${{ needs.deploy-infrastructure.outputs.sqlDatabaseName }}",
-              "slotSetting": false
-            },
-            {
-              "name": "AZURE_SQL_USER",
-              "value": "sqladmin",
-              "slotSetting": false
-            },
-            {
-              "name": "AZURE_SQL_PASSWORD",
-              "value": "${{ secrets.SQL_ADMIN_PASSWORD }}",
-              "slotSetting": false
-            },
-            {
-              "name": "JWT_SECRET",
-              "value": "${{ secrets.JWT_SECRET }}",
-              "slotSetting": false
-            },
-            {
-              "name": "APPINSIGHTS_INSTRUMENTATION_KEY",
-              "value": "${{ needs.deploy-infrastructure.outputs.appInsightsInstrumentationKey }}",
-              "slotSetting": false
-            },
-            {
-              "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-              "value": "${{ needs.deploy-infrastructure.outputs.appInsightsConnectionString }}",
-              "slotSetting": false
-            },
-            {
-              "name": "LOGGING_TYPE",
-              "value": "applicationInsights",
-              "slotSetting": false
-            },
-            {
-              "name": "WEBSITE_NODE_DEFAULT_VERSION",
-              "value": "~20",
-              "slotSetting": false
-            }
-          ]
+        echo "Using ARM-deployed storage account: $STORAGE_ACCOUNT"
+
+        # Get storage account key
+        STORAGE_KEY=$(az storage account keys list \
+          --account-name $STORAGE_ACCOUNT \
+          --resource-group cricket-expense-rg \
+          --query "[0].value" -o tsv)
+
+        # Upload blob with unique name
+        BLOB_NAME="backend-$(date +%Y%m%d-%H%M%S)-${{ github.sha }}.zip"
+        echo "Uploading to blob: $BLOB_NAME"
+
+        az storage blob upload \
+          --account-name $STORAGE_ACCOUNT \
+          --account-key $STORAGE_KEY \
+          --container-name deployments \
+          --name $BLOB_NAME \
+          --file deploy.zip \
+          --overwrite
+
+        # Generate SAS token (1 year expiry) - use UTC format compatible with both Linux/Mac
+        END_DATE=$(date -u -d "1 year" '+%Y-%m-%dT%H:%MZ' 2>/dev/null || date -u -v+1y '+%Y-%m-%dT%H:%MZ')
+        BLOB_URL="https://${STORAGE_ACCOUNT}.blob.core.windows.net/deployments/${BLOB_NAME}"
+
+        echo "Generating SAS token with expiry: $END_DATE"
+        SAS_TOKEN=$(az storage blob generate-sas \
+          --account-name $STORAGE_ACCOUNT \
+          --account-key "$STORAGE_KEY" \
+          --container-name deployments \
+          --name "$BLOB_NAME" \
+          --permissions r \
+          --expiry "$END_DATE" \
+          --https-only \
+          -o tsv)
+
+        if [ -z "$SAS_TOKEN" ]; then
+          echo "❌ Failed to generate SAS token"
+          exit 1
+        fi
+
+        PACKAGE_URL="${BLOB_URL}?${SAS_TOKEN}"
+        echo "✅ Package uploaded to blob storage"
+        echo "PACKAGE_URL=$PACKAGE_URL" >> $GITHUB_ENV
+
+    - name: Configure Run From Package
+      run: |
+        echo "Setting WEBSITE_RUN_FROM_PACKAGE..."
+        az webapp config appsettings set \
+          --name ${{ needs.deploy-infrastructure.outputs.webAppName }} \
+          --resource-group cricket-expense-rg \
+          --settings \
+            WEBSITE_RUN_FROM_PACKAGE="$PACKAGE_URL" \
+            SCM_DO_BUILD_DURING_DEPLOYMENT=false \
+            NODE_ENV=production \
+            DB_TYPE=mssql \
+            AZURE_SQL_SERVER="${{ needs.deploy-infrastructure.outputs.sqlServerFqdn }}" \
+            AZURE_SQL_DATABASE="${{ needs.deploy-infrastructure.outputs.sqlDatabaseName }}" \
+            AZURE_SQL_USER=sqladmin \
+            AZURE_SQL_PASSWORD="${{ secrets.SQL_ADMIN_PASSWORD }}" \
+            JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+            APPINSIGHTS_INSTRUMENTATION_KEY="${{ needs.deploy-infrastructure.outputs.appInsightsInstrumentationKey }}" \
+            APPLICATIONINSIGHTS_CONNECTION_STRING="${{ needs.deploy-infrastructure.outputs.appInsightsConnectionString }}" \
+            LOGGING_TYPE=applicationInsights \
+            WEBSITE_NODE_DEFAULT_VERSION=~20
+
+        echo "✅ Run From Package configured"
 
     - name: Restart Web App
       run: |
+        echo "Restarting web app to apply new package..."
         az webapp restart \
           --name ${{ needs.deploy-infrastructure.outputs.webAppName }} \
           --resource-group cricket-expense-rg
+
+        echo "✅ Web app restarted"
 
     - name: Health Check
       run: |
