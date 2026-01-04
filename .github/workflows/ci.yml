@@ -89,13 +89,12 @@ jobs:
 
     - name: Install production dependencies
       run: |
-        cd server
         npm ci --production --no-optional
         echo "✅ Production dependencies installed"
 
     - name: Create deployment package with node_modules
+      working-directory: ./
       run: |
-        cd ..
         mkdir -p backend-deploy
         echo "📦 Creating deployment package with bundled dependencies..."
 
