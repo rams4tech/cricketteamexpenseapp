@@ -87,16 +87,18 @@ jobs:
         cache: 'npm'
         cache-dependency-path: server/package-lock.json
 
-    - name: Install production dependencies
-      run: npm ci --production
-
     - name: Create deployment package
       run: |
         cd ..
         mkdir -p backend-deploy
-        cp -r server/* backend-deploy/
+        # Copy all files except node_modules and test files (Azure will run npm install)
+        rsync -av --exclude='node_modules' --exclude='*.test.js' --exclude='coverage' \
+          --exclude='*.db' --exclude='*.db-journal' \
+          server/ backend-deploy/
         cd backend-deploy
         ls -la
+        echo "Package contents:"
+        du -sh *
 
     - name: Upload backend deployment artifact
       uses: actions/upload-artifact@v4
