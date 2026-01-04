@@ -132,29 +132,54 @@ jobs:
 
     - name: Upload package to Azure Storage (Run From Package)
       run: |
-        # Create storage container if it doesn't exist
-        az storage container create --name deployments --account-name $(az storage account list -g cricket-expense-rg --query "[0].name" -o tsv) --public-access off || true
-
-        # Upload ZIP to blob storage
+        # Check if storage account exists, create if not
         STORAGE_ACCOUNT=$(az storage account list -g cricket-expense-rg --query "[0].name" -o tsv)
-        BLOB_URL=$(az storage blob upload \
+
+        if [ -z "$STORAGE_ACCOUNT" ]; then
+          echo "Creating storage account..."
+          STORAGE_NAME="cricketdeploy$(date +%s)"
+          az storage account create \
+            --name $STORAGE_NAME \
+            --resource-group cricket-expense-rg \
+            --location eastasia \
+            --sku Standard_LRS \
+            --kind StorageV2
+          STORAGE_ACCOUNT=$STORAGE_NAME
+          echo "✅ Storage account created: $STORAGE_ACCOUNT"
+        else
+          echo "✅ Using existing storage account: $STORAGE_ACCOUNT"
+        fi
+
+        # Create container if it doesn't exist
+        az storage container create \
+          --name deployments \
+          --account-name $STORAGE_ACCOUNT \
+          --public-access off \
+          --auth-mode login || true
+
+        # Upload ZIP to blob storage with timestamp
+        BLOB_NAME="backend-$(date +%Y%m%d-%H%M%S).zip"
+        az storage blob upload \
           --account-name $STORAGE_ACCOUNT \
           --container-name deployments \
-          --name "backend-$(date +%Y%m%d-%H%M%S).zip" \
+          --name $BLOB_NAME \
           --file deploy.zip \
-          --query "url" -o tsv)
+          --auth-mode login \
+          --overwrite
 
         # Generate SAS token valid for 1 year
         END_DATE=$(date -u -d "1 year" '+%Y-%m-%dT%H:%MZ' 2>/dev/null || date -u -v+1y '+%Y-%m-%dT%H:%MZ')
         SAS_TOKEN=$(az storage blob generate-sas \
           --account-name $STORAGE_ACCOUNT \
           --container-name deployments \
-          --name "backend-$(date +%Y%m%d-%H%M%S).zip" \
+          --name $BLOB_NAME \
           --permissions r \
           --expiry $END_DATE \
           --https-only \
+          --auth-mode login \
           -o tsv)
 
+        BLOB_URL="https://${STORAGE_ACCOUNT}.blob.core.windows.net/deployments/${BLOB_NAME}"
         PACKAGE_URL="${BLOB_URL}?${SAS_TOKEN}"
         echo "PACKAGE_URL=$PACKAGE_URL" >> $GITHUB_ENV
         echo "✅ Package uploaded to: $BLOB_URL"
