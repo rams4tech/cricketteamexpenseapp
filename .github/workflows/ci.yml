@@ -87,22 +87,37 @@ jobs:
         cache: 'npm'
         cache-dependency-path: server/package-lock.json
 
-    - name: Create deployment package
+    - name: Install production dependencies
+      run: |
+        cd server
+        npm ci --production --no-optional
+        echo "✅ Production dependencies installed"
+
+    - name: Create deployment package with node_modules
       run: |
         cd ..
         mkdir -p backend-deploy
-        # Copy all files except node_modules and test files (Azure will run npm install)
-        # Using robocopy on Windows, rsync-like behavior on Linux
+        echo "📦 Creating deployment package with bundled dependencies..."
+
+        # Copy all files INCLUDING node_modules (exclude only dev/test files)
         if [ "$RUNNER_OS" == "Windows" ]; then
-          robocopy server backend-deploy /E /XD node_modules coverage /XF *.test.js *.db *.db-journal /NFL /NDL /NJH /NJS || exit 0
+          robocopy server backend-deploy /E /XD coverage /XF *.test.js *.db *.db-journal /NFL /NDL /NJH /NJS || exit 0
         else
           cp -r server/. backend-deploy/
-          rm -rf backend-deploy/node_modules backend-deploy/coverage backend-deploy/*.test.js backend-deploy/*.db backend-deploy/*.db-journal
+          rm -rf backend-deploy/coverage backend-deploy/*.test.js backend-deploy/*.db backend-deploy/*.db-journal
         fi
+
         cd backend-deploy
-        ls -la
+        echo "✅ Deployment package created"
+        echo ""
         echo "Package contents:"
-        du -sh * 2>/dev/null || dir
+        ls -la
+        echo ""
+        echo "Node modules size:"
+        du -sh node_modules 2>/dev/null || echo "node_modules folder present"
+        echo ""
+        echo "Total package size:"
+        du -sh . 2>/dev/null || dir
 
     - name: Upload backend deployment artifact
       uses: actions/upload-artifact@v4

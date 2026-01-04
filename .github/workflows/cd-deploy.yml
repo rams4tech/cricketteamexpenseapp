@@ -136,48 +136,12 @@ jobs:
         app-name: ${{ needs.deploy-infrastructure.outputs.webAppName }}
         package: ./deploy.zip
 
-    - name: Trigger Oryx build on Azure
+    - name: Verify deployment
       run: |
-        echo "Waiting for Azure to complete npm install via Oryx build..."
-        echo "This may take 2-3 minutes..."
-
-        # Give Azure time to run Oryx build after ZIP deploy
-        sleep 30
-
-        # Verify deployment by checking if node_modules exists
-        APP_NAME=${{ needs.deploy-infrastructure.outputs.webAppName }}
-
-        # Get publishing credentials for Kudu API
-        PUBLISH_PROFILE=$(az webapp deployment list-publishing-profiles \
-          --name ${APP_NAME} \
-          --resource-group cricket-expense-rg \
-          --query "[?publishMethod=='MSDeploy']|[0]" -o json)
-
-        KUDU_USER=$(echo $PUBLISH_PROFILE | jq -r '.userName')
-        KUDU_PASS=$(echo $PUBLISH_PROFILE | jq -r '.userPWD')
-
-        # Check if node_modules was created
-        echo "Checking if Oryx build completed successfully..."
-        for i in {1..10}; do
-          RESPONSE=$(curl -s "https://${APP_NAME}.scm.azurewebsites.net/api/vfs/site/wwwroot/node_modules/" \
-            -u "${KUDU_USER}:${KUDU_PASS}")
-
-          if echo "$RESPONSE" | grep -q "applicationinsights"; then
-            echo "✅ Oryx build completed - node_modules found"
-            break
-          else
-            echo "Waiting for Oryx build... (attempt $i/10)"
-            sleep 20
-          fi
-
-          if [ $i -eq 10 ]; then
-            echo "⚠️ Oryx build may have failed - node_modules not found after 3 minutes"
-            echo "Checking deployment logs..."
-            az webapp log tail --name ${APP_NAME} --resource-group cricket-expense-rg &
-            sleep 10
-            pkill -f "az webapp log tail"
-          fi
-        done
+        echo "📦 Deployment package includes node_modules - no build step needed"
+        echo "Waiting 20 seconds for deployment to complete..."
+        sleep 20
+        echo "✅ Deployment complete"
 
     - name: Configure App Settings
       uses: azure/appservice-settings@v1
@@ -238,16 +202,6 @@ jobs:
             {
               "name": "WEBSITE_NODE_DEFAULT_VERSION",
               "value": "~20",
-              "slotSetting": false
-            },
-            {
-              "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
-              "value": "true",
-              "slotSetting": false
-            },
-            {
-              "name": "ENABLE_ORYX_BUILD",
-              "value": "true",
               "slotSetting": false
             }
           ]
