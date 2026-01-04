@@ -64,7 +64,7 @@ class ApplicationInsightsLogger extends ILogger {
   info(message, properties = {}, correlationId = null) {
     const enrichedProps = this._addCorrelationContext(properties, correlationId);
 
-    if (this.isEnabled) {
+    if (this.isEnabled && this.client) {
       this.client.trackTrace({
         message,
         severity: appInsights.Contracts.SeverityLevel.Information,
@@ -81,7 +81,7 @@ class ApplicationInsightsLogger extends ILogger {
   warn(message, properties = {}, correlationId = null) {
     const enrichedProps = this._addCorrelationContext(properties, correlationId);
 
-    if (this.isEnabled) {
+    if (this.isEnabled && this.client) {
       this.client.trackTrace({
         message,
         severity: appInsights.Contracts.SeverityLevel.Warning,
@@ -98,7 +98,7 @@ class ApplicationInsightsLogger extends ILogger {
   error(message, error = null, properties = {}, correlationId = null) {
     const enrichedProps = this._addCorrelationContext(properties, correlationId);
 
-    if (this.isEnabled) {
+    if (this.isEnabled && this.client) {
       if (error instanceof Error) {
         this.client.trackException({
           exception: error,
@@ -125,7 +125,7 @@ class ApplicationInsightsLogger extends ILogger {
   debug(message, properties = {}, correlationId = null) {
     const enrichedProps = this._addCorrelationContext(properties, correlationId);
 
-    if (this.isEnabled) {
+    if (this.isEnabled && this.client) {
       this.client.trackTrace({
         message,
         severity: appInsights.Contracts.SeverityLevel.Verbose,
@@ -142,7 +142,7 @@ class ApplicationInsightsLogger extends ILogger {
   trackEvent(eventName, properties = {}, measurements = {}, correlationId = null) {
     const enrichedProps = this._addCorrelationContext(properties, correlationId);
 
-    if (this.isEnabled) {
+    if (this.isEnabled && this.client) {
       this.client.trackEvent({
         name: eventName,
         properties: enrichedProps,
@@ -159,7 +159,7 @@ class ApplicationInsightsLogger extends ILogger {
   trackMetric(name, value, properties = {}, correlationId = null) {
     const enrichedProps = this._addCorrelationContext(properties, correlationId);
 
-    if (this.isEnabled) {
+    if (this.isEnabled && this.client) {
       this.client.trackMetric({
         name,
         value,
@@ -187,7 +187,7 @@ class ApplicationInsightsLogger extends ILogger {
 
     const enrichedProps = this._addCorrelationContext(properties, correlationId);
 
-    if (this.isEnabled) {
+    if (this.isEnabled && this.client) {
       this.client.trackRequest({
         name: `${method} ${url}`,
         url,
@@ -223,7 +223,7 @@ class ApplicationInsightsLogger extends ILogger {
 
     const enrichedProps = this._addCorrelationContext(properties, correlationId);
 
-    if (this.isEnabled) {
+    if (this.isEnabled && this.client) {
       this.client.trackDependency({
         target,
         name,
@@ -243,7 +243,7 @@ class ApplicationInsightsLogger extends ILogger {
    * Flush any pending logs
    */
   async flush() {
-    if (this.isEnabled) {
+    if (this.isEnabled && this.client) {
       return new Promise((resolve) => {
         this.client.flush({
           callback: () => {
