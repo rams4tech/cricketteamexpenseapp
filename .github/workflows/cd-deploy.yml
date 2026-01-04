@@ -150,14 +150,25 @@ jobs:
         KUDU_PASS=$(echo $PUBLISH_PROFILE | jq -r '.userPWD')
         APP_NAME=${{ needs.deploy-infrastructure.outputs.webAppName }}
 
-        # Run npm install via Kudu command API
-        curl -X POST "https://${APP_NAME}.scm.azurewebsites.net/api/command" \
+        # Run npm install via Kudu command API (dir parameter sets working directory)
+        echo "Running npm install in /home/site/wwwroot..."
+        RESPONSE=$(curl -X POST "https://${APP_NAME}.scm.azurewebsites.net/api/command" \
           -u "${KUDU_USER}:${KUDU_PASS}" \
           -H "Content-Type: application/json" \
-          -d '{"command":"cd /home/site/wwwroot && npm install --production --no-optional","dir":"/home/site/wwwroot"}' \
-          --max-time 300
+          -d '{"command":"npm install --production --no-optional","dir":"/home/site/wwwroot"}' \
+          --max-time 300 -s)
 
-        echo "npm install completed"
+        echo "Kudu API Response:"
+        echo "$RESPONSE"
+
+        # Check for errors in response
+        if echo "$RESPONSE" | grep -q '"ExitCode":0'; then
+          echo "✅ npm install completed successfully"
+        else
+          echo "❌ npm install failed"
+          echo "$RESPONSE"
+          exit 1
+        fi
       continue-on-error: false
 
     - name: Configure App Settings
