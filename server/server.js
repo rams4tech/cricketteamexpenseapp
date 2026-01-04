@@ -32,34 +32,45 @@ app.use(createLoggingMiddleware(logger));
 
 // ===== HEALTH CHECK ENDPOINT =====
 // Health check endpoint for monitoring and availability checks
-app.get('/health', (req, res) => {
+app.get('/health', async (req, res) => {
   const healthCheck = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development',
-    version: '1.0.0'
+    version: '1.0.0',
+    database: 'unknown'
   };
 
-  // Check database connection
-  if (db && typeof db.get === 'function') {
-    db.get('SELECT 1 as health', [], (err) => {
-      if (err) {
-        healthCheck.status = 'unhealthy';
-        healthCheck.database = 'disconnected';
-        healthCheck.error = err.message;
-        logger.error('Health check failed - database error', { error: err.message });
-        return res.status(503).json(healthCheck);
-      }
+  try {
+    // Check database connection for both SQLite and Azure SQL
+    if (db && typeof db.get === 'function') {
+      await new Promise((resolve, reject) => {
+        db.get('SELECT 1 as health', [], (err, row) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(row);
+          }
+        });
+      });
       healthCheck.database = 'connected';
+      healthCheck.status = 'healthy';
       logger.debug('Health check passed');
-      res.status(200).json(healthCheck);
-    });
-  } else {
-    // Azure SQL uses different API
-    healthCheck.database = 'connected';
-    logger.debug('Health check passed (Azure SQL)');
-    res.status(200).json(healthCheck);
+      return res.status(200).json(healthCheck);
+    } else {
+      // Database not initialized yet
+      healthCheck.status = 'initializing';
+      healthCheck.database = 'not ready';
+      logger.warn('Health check - database not initialized');
+      return res.status(503).json(healthCheck);
+    }
+  } catch (err) {
+    healthCheck.status = 'unhealthy';
+    healthCheck.database = 'error';
+    healthCheck.error = err.message;
+    logger.error('Health check failed', { error: err.message });
+    return res.status(503).json(healthCheck);
   }
 });
 
