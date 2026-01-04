@@ -92,13 +92,17 @@ jobs:
         cd ..
         mkdir -p backend-deploy
         # Copy all files except node_modules and test files (Azure will run npm install)
-        rsync -av --exclude='node_modules' --exclude='*.test.js' --exclude='coverage' \
-          --exclude='*.db' --exclude='*.db-journal' \
-          server/ backend-deploy/
+        # Using robocopy on Windows, rsync-like behavior on Linux
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          robocopy server backend-deploy /E /XD node_modules coverage /XF *.test.js *.db *.db-journal /NFL /NDL /NJH /NJS || exit 0
+        else
+          cp -r server/. backend-deploy/
+          rm -rf backend-deploy/node_modules backend-deploy/coverage backend-deploy/*.test.js backend-deploy/*.db backend-deploy/*.db-journal
+        fi
         cd backend-deploy
         ls -la
         echo "Package contents:"
-        du -sh *
+        du -sh * 2>/dev/null || dir
 
     - name: Upload backend deployment artifact
       uses: actions/upload-artifact@v4
