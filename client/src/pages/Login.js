@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { getLogger } from '../services/logger';
+
+const logger = getLogger();
 
 function Login() {
   const navigate = useNavigate();
@@ -13,6 +16,11 @@ function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
+
+  useEffect(() => {
+    logger.info('Login page loaded');
+    logger.trackPageView('Login', window.location.href);
+  }, []);
   const [resetFormData, setResetFormData] = useState({
     username: '',
     securityQuestion: '',
@@ -48,9 +56,18 @@ function Login() {
     setError('');
     setLoading(true);
 
+    logger.info('Login attempt started', { username: formData.username });
+    logger.trackEvent('LoginAttempt', { username: formData.username });
+
     try {
       const response = await axios.post('/api/auth/login', formData);
       const { token, user } = response.data;
+
+      logger.info('Login successful', { username: formData.username, role: user.role });
+      logger.trackEvent('LoginSuccess', { username: formData.username, role: user.role });
+
+      // Set user context in logger
+      logger.setUser(user.username, user.id);
 
       // Use AuthContext login function
       login(user, token);
@@ -58,6 +75,15 @@ function Login() {
       // Redirect to profile page
       navigate('/profile');
     } catch (error) {
+      logger.error('Login failed', error, {
+        username: formData.username,
+        errorMessage: error.response?.data?.error,
+        statusCode: error.response?.status
+      });
+      logger.trackEvent('LoginFailure', {
+        username: formData.username,
+        error: error.response?.data?.error || error.message
+      });
       console.error('Login error:', error);
       setError(error.response?.data?.error || 'Login failed. Please try again.');
     } finally {
@@ -80,15 +106,19 @@ function Login() {
 
     if (resetFormData.newPassword !== resetFormData.confirmPassword) {
       setResetError('Passwords do not match');
+      logger.warn('Password reset validation failed - passwords do not match', { username: resetFormData.username });
       return;
     }
 
     if (resetFormData.newPassword.length < 6) {
       setResetError('Password must be at least 6 characters long');
+      logger.warn('Password reset validation failed - password too short', { username: resetFormData.username });
       return;
     }
 
     setResetLoading(true);
+    logger.info('Password reset attempt started', { username: resetFormData.username });
+    logger.trackEvent('PasswordResetAttempt', { username: resetFormData.username });
 
     try {
       await axios.post('/api/auth/reset-password', {
@@ -97,6 +127,9 @@ function Login() {
         securityAnswer: resetFormData.securityAnswer,
         newPassword: resetFormData.newPassword
       });
+
+      logger.info('Password reset successful', { username: resetFormData.username });
+      logger.trackEvent('PasswordResetSuccess', { username: resetFormData.username });
 
       setResetSuccess('Password reset successfully! You can now login with your new password.');
       setResetFormData({
@@ -113,6 +146,15 @@ function Login() {
         setResetSuccess('');
       }, 2000);
     } catch (error) {
+      logger.error('Password reset failed', error, {
+        username: resetFormData.username,
+        errorMessage: error.response?.data?.error,
+        statusCode: error.response?.status
+      });
+      logger.trackEvent('PasswordResetFailure', {
+        username: resetFormData.username,
+        error: error.response?.data?.error || error.message
+      });
       console.error('Password reset error:', error);
       setResetError(error.response?.data?.error || 'Failed to reset password. Please try again.');
     } finally {
@@ -121,6 +163,8 @@ function Login() {
   };
 
   const openResetModal = () => {
+    logger.info('Password reset modal opened');
+    logger.trackEvent('ForgotPasswordClicked');
     setShowResetModal(true);
     setResetError('');
     setResetSuccess('');

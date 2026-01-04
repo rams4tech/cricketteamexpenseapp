@@ -199,6 +199,10 @@ jobs:
         # Backend URL without /api suffix (axios calls include full path)
         REACT_APP_API_URL: https://cricketteamexpense-api.azurewebsites.net
         REACT_APP_ENVIRONMENT: production
+        # Application Insights for client-side telemetry
+        REACT_APP_APPINSIGHTS_INSTRUMENTATION_KEY: ${{ secrets.APPINSIGHTS_INSTRUMENTATION_KEY }}
+        REACT_APP_CLOUD_ROLE_NAME: CricketExpenseApp-Client
+        REACT_APP_ENABLE_LOGGING: true
         GENERATE_SOURCEMAP: false
 
     - name: Remove source maps
