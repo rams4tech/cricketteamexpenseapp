@@ -118,13 +118,10 @@ jobs:
     - name: Create deployment zip
       run: |
         cd backend-deploy
-        # Remove package.json and package-lock.json to prevent Oryx from running
-        # We already have pre-built node_modules, so these files aren't needed
-        rm -f package.json package-lock.json
         zip -r ../deploy.zip . -x "*.db" -x "*.db-journal"
         cd ..
         ls -lh deploy.zip
-        echo "✅ Deployment package created (node_modules included, package.json excluded)"
+        echo "✅ Deployment package created with node_modules"
 
     - name: Azure Login (OIDC)
       uses: azure/login@v1
@@ -133,19 +130,44 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name: Deploy to Azure Web App
-      id: deploy
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: ${{ needs.deploy-infrastructure.outputs.webAppName }}
-        package: ./deploy.zip
-
-    - name: Verify deployment
+    - name: Upload package to Azure Storage (Run From Package)
       run: |
-        echo "📦 Deployment package includes node_modules - no build step needed"
-        echo "Waiting 20 seconds for deployment to complete..."
-        sleep 20
-        echo "✅ Deployment complete"
+        # Create storage container if it doesn't exist
+        az storage container create --name deployments --account-name $(az storage account list -g cricket-expense-rg --query "[0].name" -o tsv) --public-access off || true
+
+        # Upload ZIP to blob storage
+        STORAGE_ACCOUNT=$(az storage account list -g cricket-expense-rg --query "[0].name" -o tsv)
+        BLOB_URL=$(az storage blob upload \
+          --account-name $STORAGE_ACCOUNT \
+          --container-name deployments \
+          --name "backend-$(date +%Y%m%d-%H%M%S).zip" \
+          --file deploy.zip \
+          --query "url" -o tsv)
+
+        # Generate SAS token valid for 1 year
+        END_DATE=$(date -u -d "1 year" '+%Y-%m-%dT%H:%MZ' 2>/dev/null || date -u -v+1y '+%Y-%m-%dT%H:%MZ')
+        SAS_TOKEN=$(az storage blob generate-sas \
+          --account-name $STORAGE_ACCOUNT \
+          --container-name deployments \
+          --name "backend-$(date +%Y%m%d-%H%M%S).zip" \
+          --permissions r \
+          --expiry $END_DATE \
+          --https-only \
+          -o tsv)
+
+        PACKAGE_URL="${BLOB_URL}?${SAS_TOKEN}"
+        echo "PACKAGE_URL=$PACKAGE_URL" >> $GITHUB_ENV
+        echo "✅ Package uploaded to: $BLOB_URL"
+
+    - name: Configure Run From Package
+      run: |
+        # Set WEBSITE_RUN_FROM_PACKAGE to use the uploaded ZIP
+        az webapp config appsettings set \
+          --name ${{ needs.deploy-infrastructure.outputs.webAppName }} \
+          --resource-group cricket-expense-rg \
+          --settings WEBSITE_RUN_FROM_PACKAGE="$PACKAGE_URL"
+
+        echo "✅ Run From Package configured"
 
     - name: Configure App Settings
       uses: azure/appservice-settings@v1
@@ -206,11 +228,6 @@ jobs:
             {
               "name": "WEBSITE_NODE_DEFAULT_VERSION",
               "value": "~20",
-              "slotSetting": false
-            },
-            {
-              "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
-              "value": "false",
               "slotSetting": false
             }
           ]
