@@ -15,9 +15,11 @@
 module.exports = {
   // Logger type: 'applicationInsights', 'console'
   // Add more types as you implement them: 'datadog', 'newrelic', etc.
-  type: process.env.LOGGING_TYPE || 'applicationInsights',
+  type: process.env.LOGGING_TYPE || 'console', // Default to console to prevent crashes
 
   // Application Insights configuration
+  // Prefer connection string (newer) over instrumentation key
+  connectionString: process.env.APPLICATIONINSIGHTS_CONNECTION_STRING || '',
   instrumentationKey: process.env.APPINSIGHTS_INSTRUMENTATION_KEY || '',
 
   // Cloud role name (shown in Application Insights)

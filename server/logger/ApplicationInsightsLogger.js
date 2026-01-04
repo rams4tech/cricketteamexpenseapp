@@ -9,18 +9,30 @@ const ILogger = require('./ILogger');
  * distributed tracing, custom events, metrics, and dependencies.
  */
 class ApplicationInsightsLogger extends ILogger {
-  constructor(instrumentationKey, config = {}) {
+  constructor(connectionStringOrKey, config = {}) {
     super();
 
-    if (!instrumentationKey) {
-      console.warn('Application Insights instrumentation key not provided. Logging will fall back to console.');
+    // Accept either connection string or instrumentation key
+    const connectionString = config.connectionString || (connectionStringOrKey && connectionStringOrKey.includes('InstrumentationKey=') ? connectionStringOrKey : null);
+    const instrumentationKey = connectionString ? null : (config.instrumentationKey || connectionStringOrKey);
+
+    if (!connectionString && !instrumentationKey) {
+      console.warn('Application Insights connection string or instrumentation key not provided. Logging will fall back to console.');
       this.isEnabled = false;
       return;
     }
 
     try {
-      // Setup Application Insights
-      appInsights.setup(instrumentationKey)
+      // Setup Application Insights with connection string (preferred) or instrumentation key
+      if (connectionString) {
+        console.log('Initializing Application Insights with connection string');
+        appInsights.setup(connectionString);
+      } else {
+        console.log('Initializing Application Insights with instrumentation key');
+        appInsights.setup(instrumentationKey);
+      }
+
+      appInsights
         .setAutoCollectRequests(true)       // Auto-collect HTTP requests
         .setAutoCollectPerformance(true)    // Auto-collect performance counters
         .setAutoCollectExceptions(true)     // Auto-collect exceptions

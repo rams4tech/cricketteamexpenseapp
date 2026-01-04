@@ -26,11 +26,15 @@ class LoggerFactory {
     switch (loggerType.toLowerCase()) {
       case 'applicationinsights':
       case 'appinsights':
-        if (!config.instrumentationKey) {
-          console.warn('Application Insights instrumentation key not provided. Falling back to Console Logger.');
+        // Prefer connection string, fall back to instrumentation key
+        const connectionStringOrKey = config.connectionString || config.instrumentationKey;
+        if (!connectionStringOrKey) {
+          console.warn('Application Insights connection string or instrumentation key not provided. Falling back to Console Logger.');
           return new ConsoleLogger(config);
         }
-        return new ApplicationInsightsLogger(config.instrumentationKey, {
+        return new ApplicationInsightsLogger(connectionStringOrKey, {
+          connectionString: config.connectionString,
+          instrumentationKey: config.instrumentationKey,
           cloudRoleName: config.cloudRoleName || 'CricketExpenseApp',
           enableLiveMetrics: config.enableLiveMetrics || false
         });
