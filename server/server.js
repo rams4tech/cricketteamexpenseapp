@@ -1323,14 +1323,24 @@ app.get('/api/profile', authenticateToken, (req, res) => {
                     };
 
                     // Get last 5 matches for this player
+                    // Use appropriate SQL syntax for SQLite vs Azure SQL
+                    const recentMatchesQuery = config.useSQLite()
+                      ? `SELECT m.*, t.name as team_name, mp.expense_share
+                         FROM matches m
+                         INNER JOIN match_players mp ON m.id = mp.match_id
+                         LEFT JOIN teams t ON m.team_id = t.id
+                         WHERE mp.player_id = ?
+                         ORDER BY m.match_date DESC
+                         LIMIT 5`
+                      : `SELECT TOP 5 m.*, t.name as team_name, mp.expense_share
+                         FROM matches m
+                         INNER JOIN match_players mp ON m.id = mp.match_id
+                         LEFT JOIN teams t ON m.team_id = t.id
+                         WHERE mp.player_id = ?
+                         ORDER BY m.match_date DESC`;
+
                     db.all(
-                      `SELECT m.*, t.name as team_name, mp.expense_share
-                       FROM matches m
-                       INNER JOIN match_players mp ON m.id = mp.match_id
-                       LEFT JOIN teams t ON m.team_id = t.id
-                       WHERE mp.player_id = ?
-                       ORDER BY m.match_date DESC
-                       LIMIT 5`,
+                      recentMatchesQuery,
                       [playerId],
                       (err, matches) => {
                         if (err) {
