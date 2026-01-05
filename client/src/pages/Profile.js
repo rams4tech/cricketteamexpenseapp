@@ -131,7 +131,7 @@ function Profile() {
     );
   }
 
-  const { player, teams, accountSummary } = profileData || {};
+  const { player, teams, accountSummary, recentMatches } = profileData || {};
 
   return (
     <div className="container mt-4">
@@ -321,6 +321,50 @@ function Profile() {
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Recent Matches Section */}
+      {player && recentMatches && recentMatches.length > 0 && (
+        <div className="row mb-4">
+          <div className="col-12">
+            <div className="card shadow-sm">
+              <div className="card-body">
+                <h5 className="card-title">Recent Matches</h5>
+                <hr />
+                <div className="table-responsive">
+                  <table className="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Team</th>
+                        <th>Opponent</th>
+                        <th>Venue</th>
+                        <th>My Share</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentMatches.map((match) => (
+                        <tr key={match.id}>
+                          <td>{new Date(match.match_date).toLocaleDateString()}</td>
+                          <td>{match.team_name || 'N/A'}</td>
+                          <td>{match.opponent_team || 'N/A'}</td>
+                          <td>{match.venue || 'N/A'}</td>
+                          <td>₹{match.expense_share?.toFixed(2) || '0.00'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <button
+                  className="btn btn-sm btn-outline-primary mt-2"
+                  onClick={() => navigate('/matches')}
+                >
+                  View All Matches
+                </button>
               </div>
             </div>
           </div>

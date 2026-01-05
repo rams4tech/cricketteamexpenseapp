@@ -1270,7 +1270,8 @@ app.get('/api/profile', authenticateToken, (req, res) => {
           return res.json({
             player: null,
             teams: [],
-            accountSummary: null
+            accountSummary: null,
+            recentMatches: []
           });
         }
 
@@ -1321,7 +1322,25 @@ app.get('/api/profile', authenticateToken, (req, res) => {
                       balance: totalContributions - totalExpenses
                     };
 
-                    res.json(profileData);
+                    // Get last 5 matches for this player
+                    db.all(
+                      `SELECT m.*, t.name as team_name, mp.expense_share
+                       FROM matches m
+                       INNER JOIN match_players mp ON m.id = mp.match_id
+                       LEFT JOIN teams t ON m.team_id = t.id
+                       WHERE mp.player_id = ?
+                       ORDER BY m.match_date DESC
+                       LIMIT 5`,
+                      [playerId],
+                      (err, matches) => {
+                        if (err) {
+                          return res.status(500).json({ error: err.message });
+                        }
+
+                        profileData.recentMatches = matches;
+                        res.json(profileData);
+                      }
+                    );
                   }
                 );
               }
@@ -1335,7 +1354,8 @@ app.get('/api/profile', authenticateToken, (req, res) => {
     res.json({
       player: null,
       teams: [],
-      accountSummary: null
+      accountSummary: null,
+      recentMatches: []
     });
   }
 });
