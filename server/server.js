@@ -1008,7 +1008,7 @@ const requireAdmin = (req, res, next) => {
 
 // Signup endpoint
 app.post('/api/auth/signup', async (req, res) => {
-  const { username, password, firstname, lastname, birthday, contact, securityQuestion, securityAnswer } = req.body;
+  const { username, password, firstname, lastname, birthday, mobilenumber, email, securityQuestion, securityAnswer } = req.body;
 
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
@@ -1016,6 +1016,14 @@ app.post('/api/auth/signup', async (req, res) => {
 
   if (!firstname || !lastname) {
     return res.status(400).json({ error: 'First name and last name are required' });
+  }
+
+  if (!mobilenumber) {
+    return res.status(400).json({ error: 'Mobile number is required' });
+  }
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
   }
 
   if (!securityQuestion || !securityAnswer) {
@@ -1036,8 +1044,8 @@ app.post('/api/auth/signup', async (req, res) => {
 
     // First, create the player record
     db.run(
-      'INSERT INTO players (firstname, lastname, birthday, contact) VALUES (?, ?, ?, ?)',
-      [firstname, lastname, birthday || null, contact || null],
+      'INSERT INTO players (firstname, lastname, mobilenumber, email, birthday) VALUES (?, ?, ?, ?, ?)',
+      [firstname, lastname, mobilenumber, email, birthday || null],
       function(playerErr) {
         if (playerErr) {
           logger.error('Error creating player profile', playerErr, {

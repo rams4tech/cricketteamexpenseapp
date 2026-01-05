@@ -16,7 +16,8 @@ function Signup() {
     firstname: '',
     lastname: '',
     birthday: '',
-    contact: '',
+    mobilenumber: '',
+    email: '',
     securityQuestion: '',
     securityAnswer: ''
   });
@@ -78,7 +79,8 @@ function Signup() {
         firstname: formData.firstname,
         lastname: formData.lastname,
         birthday: formData.birthday || null,
-        contact: formData.contact,
+        mobilenumber: formData.mobilenumber,
+        email: formData.email,
         securityQuestion: formData.securityQuestion,
         securityAnswer: formData.securityAnswer
       };
@@ -246,17 +248,34 @@ function Signup() {
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="contact" className="form-label">
-                    Contact Number
+                  <label htmlFor="mobilenumber" className="form-label">
+                    Mobile Number <span className="text-danger">*</span>
                   </label>
                   <input
                     type="tel"
                     className="form-control"
-                    id="contact"
-                    name="contact"
-                    value={formData.contact}
+                    id="mobilenumber"
+                    name="mobilenumber"
+                    value={formData.mobilenumber}
                     onChange={handleInputChange}
                     placeholder="e.g., +91 98765 43210"
+                    required
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="email" className="form-label">
+                    Email Address <span className="text-danger">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    className="form-control"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="e.g., player@example.com"
+                    required
                   />
                 </div>
 

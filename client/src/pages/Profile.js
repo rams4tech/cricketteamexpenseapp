@@ -11,13 +11,22 @@ function Profile() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [profileData, setProfileData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    firstname: '',
+    lastname: '',
+    birthday: '',
+    mobilenumber: '',
+    email: ''
+  });
+  const [saveLoading, setSaveLoading] = useState(false);
 
   useEffect(() => {
     logger.info('Profile page loaded');
     logger.trackPageView('Profile', window.location.href);
   }, []);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
   const fetchProfileData = async () => {
     try {
@@ -25,12 +34,71 @@ function Profile() {
       setError('');
       const response = await axios.get('/api/profile');
       setProfileData(response.data);
+
+      if (response.data.player) {
+        setEditFormData({
+          firstname: response.data.player.firstname || '',
+          lastname: response.data.player.lastname || '',
+          birthday: response.data.player.birthday || '',
+          mobilenumber: response.data.player.mobilenumber || '',
+          email: response.data.player.email || ''
+        });
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
       const errorMessage = error.response?.data?.error || error.message || 'Failed to load profile data';
       setError(errorMessage);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEditClick = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    if (profileData.player) {
+      setEditFormData({
+        firstname: profileData.player.firstname || '',
+        lastname: profileData.player.lastname || '',
+        birthday: profileData.player.birthday || '',
+        mobilenumber: profileData.player.mobilenumber || '',
+        email: profileData.player.email || ''
+      });
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    setSaveLoading(true);
+    setError('');
+
+    try {
+      const response = await axios.put(`/api/players/${profileData.player.id}`, editFormData);
+
+      setProfileData(prev => ({
+        ...prev,
+        player: response.data
+      }));
+
+      setIsEditing(false);
+      alert('Profile updated successfully!');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to update profile';
+      setError(errorMessage);
+    } finally {
+      setSaveLoading(false);
     }
   };
 
@@ -78,8 +146,16 @@ function Profile() {
         <div className="col-md-6">
           <div className="card shadow-sm">
             <div className="card-body">
-              <h5 className="card-title">Account Information</h5>
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h5 className="card-title mb-0">Player Information</h5>
+                {player && !isEditing && (
+                  <button className="btn btn-sm btn-primary" onClick={handleEditClick}>
+                    Edit Profile
+                  </button>
+                )}
+              </div>
               <hr />
+
               <div className="mb-3">
                 <strong>Username:</strong> {user?.username}
               </div>
@@ -89,19 +165,91 @@ function Profile() {
                   {user?.role}
                 </span>
               </div>
-              {player && (
+
+              {player && !isEditing && (
                 <>
                   <div className="mb-3">
-                    <strong>Player Name:</strong> {player.firstname} {player.lastname}
+                    <strong>Name:</strong> {player.firstname} {player.lastname}
                   </div>
                   <div className="mb-3">
-                    <strong>Birthday:</strong>{' '}
-                    {player.birthday || 'N/A'}
+                    <strong>Birthday:</strong> {player.birthday || 'N/A'}
                   </div>
                   <div className="mb-3">
-                    <strong>Contact:</strong> {player.contact || 'N/A'}
+                    <strong>Mobile Number:</strong> {player.mobilenumber || 'N/A'}
+                  </div>
+                  <div className="mb-3">
+                    <strong>Email:</strong> {player.email || 'N/A'}
                   </div>
                 </>
+              )}
+
+              {player && isEditing && (
+                <form onSubmit={handleSaveProfile}>
+                  <div className="mb-3">
+                    <label className="form-label">First Name</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="firstname"
+                      value={editFormData.firstname}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Last Name</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="lastname"
+                      value={editFormData.lastname}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Birthday (MM-DD)</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="birthday"
+                      value={editFormData.birthday}
+                      onChange={handleInputChange}
+                      placeholder="MM-DD (e.g., 03-15)"
+                      pattern="(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Mobile Number</label>
+                    <input
+                      type="tel"
+                      className="form-control"
+                      name="mobilenumber"
+                      value={editFormData.mobilenumber}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Email</label>
+                    <input
+                      type="email"
+                      className="form-control"
+                      name="email"
+                      value={editFormData.email}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div className="d-flex gap-2">
+                    <button type="submit" className="btn btn-primary" disabled={saveLoading}>
+                      {saveLoading ? 'Saving...' : 'Save Changes'}
+                    </button>
+                    <button type="button" className="btn btn-secondary" onClick={handleCancelEdit} disabled={saveLoading}>
+                      Cancel
+                    </button>
+                  </div>
+                </form>
               )}
             </div>
           </div>

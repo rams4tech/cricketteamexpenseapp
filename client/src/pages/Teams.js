@@ -7,7 +7,7 @@ import { getLogger } from '../services/logger';
 const logger = getLogger();
 
 function Teams() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const [teams, setTeams] = useState([]);
 
   useEffect(() => {
@@ -60,6 +60,14 @@ function Teams() {
       console.error('Error fetching team details:', error);
       alert('Error fetching team details');
     }
+  };
+
+  // Check if current user is a member of the selected team
+  const isTeamMember = () => {
+    if (!user || !user.player_id || !selectedTeam || !selectedTeam.players) {
+      return false;
+    }
+    return selectedTeam.players.some(player => player.id === user.player_id);
   };
 
   const handleInputChange = (e) => {
@@ -171,11 +179,10 @@ function Teams() {
     <div>
       <h2 className="mb-4">Teams</h2>
 
-      {isAdmin() && (
-        <div className="card mb-4">
-          <div className="card-header">
-            <h5 className="mb-0">{editingId ? 'Edit Team' : 'Add New Team'}</h5>
-          </div>
+      <div className="card mb-4">
+        <div className="card-header">
+          <h5 className="mb-0">{editingId ? 'Edit Team' : 'Add New Team'}</h5>
+        </div>
           <div className="card-body">
             <form onSubmit={handleSubmit}>
               <div className="row">
@@ -234,7 +241,7 @@ function Teams() {
             </form>
           </div>
         </div>
-      )}
+
 
       <div className="card">
         <div className="card-header">
@@ -358,7 +365,7 @@ function Teams() {
                   <p className="text-muted">No players in this team yet.</p>
                 )}
 
-                {isAdmin() && (
+                {(isAdmin() || isTeamMember()) && (
                   <>
                     <hr />
 

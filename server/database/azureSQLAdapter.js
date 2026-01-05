@@ -64,14 +64,26 @@ class AzureSQLAdapter {
         modifiedQuery = modifiedQuery.replace('?', `@param${index}`);
       });
 
+      // For INSERT statements, add OUTPUT clause to get the inserted ID
+      if (modifiedQuery.trim().toUpperCase().startsWith('INSERT INTO')) {
+        // Find the position after the table name and columns
+        const valuesIndex = modifiedQuery.toUpperCase().indexOf('VALUES');
+        if (valuesIndex > 0) {
+          // Insert OUTPUT INSERTED.id before VALUES
+          modifiedQuery = modifiedQuery.substring(0, valuesIndex).trim() +
+                         ' OUTPUT INSERTED.id ' +
+                         modifiedQuery.substring(valuesIndex);
+        }
+      }
+
       const result = await request.query(modifiedQuery);
 
       // Mimic SQLite behavior
       const sqliteResult = {
         lastID: result.recordset && result.recordset.length > 0
           ? result.recordset[0].id
-          : result.rowsAffected[0],
-        changes: result.rowsAffected[0]
+          : (result.rowsAffected && result.rowsAffected[0]) || 0,
+        changes: (result.rowsAffected && result.rowsAffected[0]) || 0
       };
 
       if (callback) {

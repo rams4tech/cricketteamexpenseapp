@@ -27,6 +27,10 @@ if (config.useSQLite()) {
         logger.error('Error opening SQLite database', err, { environment: config.environment });
       } else {
         logger.info('Connected to SQLite database', { environment: config.environment });
+
+        // Set busy timeout to prevent database locked errors
+        db.configure('busyTimeout', 5000);
+
         initSQLiteDatabase();
       }
     }
@@ -41,14 +45,44 @@ if (config.useSQLite()) {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           firstname TEXT NOT NULL,
           lastname TEXT NOT NULL,
-          mobilenumber TEXT,
+          mobilenumber TEXT NOT NULL,
           email TEXT,
           birthday TEXT,
-          contact TEXT,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
       `);
       // Note: birthday stores MM-DD format (e.g., "03-15" for March 15)
+
+      // Migration: Add mobilenumber and email columns if they don't exist (for existing databases)
+      db.all("PRAGMA table_info(players)", [], (err, columns) => {
+        if (err) {
+          logger.error('Error checking players table schema', err);
+          return;
+        }
+
+        const hasMobilenumber = columns.some(col => col.name === 'mobilenumber');
+        const hasEmail = columns.some(col => col.name === 'email');
+
+        if (!hasMobilenumber) {
+          db.run('ALTER TABLE players ADD COLUMN mobilenumber TEXT', (err) => {
+            if (err) {
+              logger.error('Error adding mobilenumber column', err);
+            } else {
+              logger.info('Added mobilenumber column to players table');
+            }
+          });
+        }
+
+        if (!hasEmail) {
+          db.run('ALTER TABLE players ADD COLUMN email TEXT', (err) => {
+            if (err) {
+              logger.error('Error adding email column', err);
+            } else {
+              logger.info('Added email column to players table');
+            }
+          });
+        }
+      });
 
       // Contributions table
       db.run(`
