@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('./database');
+const config = require('./config/environment');
 
 // Logging setup
 const loggingConfig = require('./config/logging.config');
