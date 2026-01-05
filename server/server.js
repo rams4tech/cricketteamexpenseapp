@@ -249,12 +249,14 @@ app.delete('/api/expenses/:id', (req, res) => {
 // Get all teams with player count
 app.get('/api/teams', (req, res) => {
   db.all(
-    `SELECT t.*, COUNT(tp.player_id) as player_count,
+    `SELECT t.id, t.name, t.date_formed, t.manager_id, t.created_at,
+            COUNT(tp.player_id) as player_count,
             p.firstname || ' ' || p.lastname as manager_name
      FROM teams t
      LEFT JOIN team_players tp ON t.id = tp.team_id
      LEFT JOIN players p ON t.manager_id = p.id
-     GROUP BY t.id
+     GROUP BY t.id, t.name, t.date_formed, t.manager_id, t.created_at,
+              p.firstname, p.lastname
      ORDER BY t.created_at DESC`,
     [],
     (err, rows) => {
