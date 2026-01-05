@@ -60,3 +60,6 @@ deployment-outputs.json
 azure/deployment-output.json
 kudu_creds.txt
 creds.json
+
+# Claude Code local settings
+.claude/settings.local.json
